@@ -1,4 +1,5 @@
 ﻿using Common.Classes;
+using Common.Constantes;
 using System.Security.AccessControl;
 
 namespace AnalisadorExtensaoBrowser
@@ -16,8 +17,7 @@ namespace AnalisadorExtensaoBrowser
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            var ext = ExtensaoBrowser.ObterExtensao(Constantes.urlTeste);
-            Console.WriteLine(ext.ToString());
+            var ext = BrowserExtension.GetExtension(Params.urlTeste);
             
         }
 
