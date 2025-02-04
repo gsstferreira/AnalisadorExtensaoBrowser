@@ -1,10 +1,11 @@
-﻿using Common.Constantes;
-using Common.Enums;
-using Newtonsoft.Json.Linq;
+﻿using Common.Enums;
 using System.IO.Compression;
 using System.Security;
 using System.Text;
 using System.Linq;
+using Common.Services;
+using static System.Net.Mime.MediaTypeNames;
+using Common.WebClasses.VirusTotal;
 
 namespace Common.Classes
 {
@@ -12,7 +13,8 @@ namespace Common.Classes
     {
         public string PageUrl { get; set; }
         public string DownloadUrl { get; set; }
-        public ZipArchive CrxArchive { get; set; }
+        public string SimpleName { get; set; }
+        public string ID { get; set; }
         public string Name { get; set; }
         public string Version { get; set; }
         public string Provider { get; set; }
@@ -21,140 +23,62 @@ namespace Common.Classes
         public long NumDownloads { get; set; }
         public DateTime LastUpdated { get; set; }
         public List<Permission> Permissions { get; set; }
-
-        private BrowserExtension(string pageUrl, string downloadUrl) 
+        public List<Url> ContainedURLs { get; set; }
+        public List<JSFile> ContainedJSFiles { get; set; }
+        public VTResponse VirusTotalResult { get; set; }
+        public ZipArchive CrxArchive { get; set; }
+        public long CrxArchiveLenght { get; set; }
+        public string CrxB64 { get; set; }
+        public string VirusTotalAnalysisUrl { get; set; }
+        internal readonly MemoryStream CrxStream = new();
+        public BrowserExtension(string pageUrl, string downloadUrl, string name, string id) 
         { 
             PageUrl = pageUrl;
             DownloadUrl = downloadUrl;
+            SimpleName = name;
+            ID = id;
             Name = string.Empty;
             Version = string.Empty;
             Provider = string.Empty;
+            CrxB64 = string.Empty;
+            VirusTotalAnalysisUrl = string.Empty;
+            CrxArchiveLenght = 0;
 
             LastUpdated = DateTime.MinValue;
             Permissions = [];
+            ContainedURLs = [];
+            ContainedJSFiles = [];
         }
 
-        public static BrowserExtension GetExtension(string extensionUrl)
+        public void SetCrxArchive(Stream stream)
         {
-            var urlTrim = extensionUrl.Replace(ChromeWebStore.ChromeExtensionViewUrl, string.Empty).Trim();
-            var extensionId = urlTrim.Split(['/', '?'])[1];
+            stream.CopyTo(CrxStream);
+            CrxStream.Seek(0, SeekOrigin.Begin);
 
-            var downloadUrl = ChromeWebStore.ChromeExtensionDownloadUrl.
-                Replace("[PRODVER]", ChromeWebStore.ChromeProdVersion).
-                Replace("[FORMAT]", ChromeWebStore.AcceptedFormat).
-                Replace("[ID]", extensionId);
+            var len = (int)CrxStream.Length;
+            CrxArchiveLenght += len;
+            byte[] data = new byte[len];
+            CrxStream.Read(data, 0, len);
+            CrxB64 = Convert.ToBase64String(data);
 
-            var extension = new BrowserExtension(extensionUrl, downloadUrl);
-
-            Console.WriteLine("Obtendo info de extensão - {0}",DateTime.Now);
-            extension.DownloadCrx();
-            extension.ScrapeExtensionInfo();
-            extension.ParsePermissions();
-
-            Console.WriteLine("Infos obtidas - {0}", DateTime.Now);
-
-            return extension;
+            CrxStream.Seek(0, SeekOrigin.Begin);
+            CrxArchive = new ZipArchive(CrxStream);
         }
 
-        private void DownloadCrx()
+        public void ExtractToPath(string path)
         {
-            // Obter arquivo .crx do repositório Google
-            using (var httpClient = new HttpClient()) 
-            {
-                var response = httpClient.GetStreamAsync(this.DownloadUrl);
-                response.Wait();
-                var stream = response.Result;
-
-                // Remover cabeçalho adicional para converter .crx em .zip
-                byte[] chromeNumber = new byte[4];  // "Magic Number", string de valor "Cr24"
-                byte[] crxVersion = new byte[4];    // versão do .crx
-                byte[] headerLenght = new byte[4];  // tamanho do restante do cabeçalho adicional
-
-                stream.Read(chromeNumber, 0, 4);    // extração do "Magic Number"
-                stream.Read(crxVersion, 0, 4);      // extração da versão do .crx
-                stream.Read(headerLenght, 0, 4);    // extração do tamanho do cabeçalho
-
-                string magicNumber = Encoding.UTF8.GetString(chromeNumber);
-                int version = checked((int)BitConverter.ToUInt32(crxVersion, 0));       // byte[] -> uint -> int numericamente equivalente
-                int headerLen = checked((int)BitConverter.ToUInt32(headerLenght, 0));   // byte[] -> uint -> int numericamente equivalente
-
-                stream.Read(new byte[headerLen], 0, headerLen);     // Remoção do cabeçalho, deixando apenas o .zip no stream
-                this.CrxArchive = new ZipArchive(stream);
-            }
-        }
-
-        private void ScrapeExtensionInfo()
-        {
-            // Obter página HTML da extensão para scrapping
-            var scrapper = new HtmlAgilityPack.HtmlWeb();
-            var page = scrapper.Load(this.PageUrl).DocumentNode;
-
-            this.Name = page.SelectSingleNode(HTMLXpaths.xPath_Name).InnerText;
-            this.Provider = page.SelectSingleNode(HTMLXpaths.xPath_Provider).InnerText;
-            this.Rating = float.Parse(page.SelectSingleNode(HTMLXpaths.xPath_Rating).InnerText);
-
-            var divAvalicaoes = page.SelectSingleNode(HTMLXpaths.xPath_NumReviews).InnerText.Split();
-
-            var numAvaliacoes = float.Parse(divAvalicaoes[0]);
-
-            if(divAvalicaoes.Contains("mil"))
-            {
-                numAvaliacoes *= 1000;
-            }
-            this.NumReviews = (int)numAvaliacoes;
-            this.Version = page.SelectSingleNode(HTMLXpaths.xPath_Version).InnerText;
-            
-            var divAtt = page.SelectSingleNode(HTMLXpaths.xPath_LastUpdated).ChildNodes.ElementAt(1).InnerText;
-            this.LastUpdated = DateTime.Parse(divAtt);
-
-            var divNumDl = page.SelectSingleNode(HTMLXpaths.xPath_NumDownloads).ChildNodes.ElementAt(2).InnerText;
-            this.NumDownloads = int.Parse(divNumDl.Split()[0].Replace(".",string.Empty));
-        }
-
-        private void ParsePermissions()
-        {
-            var manifest = this.CrxArchive.GetEntry("manifest.json");
-            if (manifest != null)
-            {
-                JObject json;
-
-                using(var reader = new StreamReader(manifest.Open())) 
-                {
-                    json = JObject.Parse(reader.ReadToEnd());
-                }
-                
-                if(json.TryGetValue("permissions", out var permissions))
-                {
-                    this.Permissions.AddRange(from string value in permissions.Values<string>()
-                                              where !string.IsNullOrEmpty(value)
-                                              select new Permission(value.Trim(), PermissionType.Permission));
-                }
-
-                if (json.TryGetValue("optional_permissions", out permissions))
-                {
-                    this.Permissions.AddRange(from string value in permissions.Values<string>()
-                                              where !string.IsNullOrEmpty(value)
-                                              select new Permission(value.Trim(), PermissionType.OptionalPermission));
-                }
-                if (json.TryGetValue("host_permissions", out permissions))
-                {
-                    this.Permissions.AddRange(from string value in permissions.Values<string>()
-                                              where !string.IsNullOrEmpty(value)
-                                              select new Permission(value.Trim(), PermissionType.Host));
-                }
-                if (json.TryGetValue("optional_host_permissions", out permissions))
-                {
-                    this.Permissions.AddRange(from string value in permissions.Values<string>()
-                                              where !string.IsNullOrEmpty(value)
-                                              select new Permission(value.Trim(), PermissionType.OptionalHost));
-                }
-            }
-        }
-        public void ExtrairArquivos(string path)
-        {
+            string simpleName = this.PageUrl.Split('/')[4];
             try
             {
-                this.CrxArchive.ExtractToDirectory(path);
+                if (path.EndsWith("/"))
+                {
+                    this.CrxArchive.ExtractToDirectory(path + simpleName);
+                }
+                else
+                {
+                    this.CrxArchive.ExtractToDirectory(path + "/" + simpleName);
+                }
+                
             }
             catch (IOException)
             {
@@ -165,14 +89,84 @@ namespace Common.Classes
                 Console.WriteLine(ex.Message);
             }   
         }
-
-        public void ListarConteudo()
+        public void PrintBasicInfo()
         {
-            foreach (var item in CrxArchive.Entries)
+            Console.WriteLine("Informações básicas da extensão:");
+            Console.WriteLine(" *Nome: " + this.SimpleName);
+            Console.WriteLine(" *ID: " + this.ID);
+
+            var crxSizeMB = ((float)CrxArchiveLenght) / (1024 * 1024);
+
+            Console.WriteLine(string.Format(" *Tamanho comprimido (.crx): {0:0.00}MB", crxSizeMB));
+            long size = 0;
+            var numEntries = 0;
+            foreach (var entry in CrxArchive.Entries.Where(e => !e.Name.Equals(string.Empty))) 
             {
-                Console.WriteLine(item.FullName);
+                numEntries++;
+                size += entry.Length;
+            }
+            var sizeMB = ((float)size) / (1024*1024);
+
+            Console.WriteLine(string.Format(" *Tamanho: total de {0:0.00}MB em {1} arquivos", sizeMB, numEntries));
+        }
+        public void PrintScrapedInfo()
+        {
+            Console.WriteLine("Informações da extensão:");
+            Console.WriteLine(" *Nome: " + this.Name);
+            Console.WriteLine(string.Format(" *Nota: {0:0.0}/5.0",this.Rating));
+            Console.WriteLine(" *Qtd. Avaliaçãoes: " + this.NumReviews);
+            Console.WriteLine(" *Qtd. Downloads: " + this.NumDownloads);
+            Console.WriteLine(" *Versão: " + this.Version);
+            Console.WriteLine(" *Última Atualização: " + this.LastUpdated.ToShortDateString());
+            Console.WriteLine(" *Fornecedor: " + this.Provider);
+        }
+        public void PrintPermssions()
+        {
+            Console.WriteLine("\tPermissões obrigatórias:");
+            foreach (var permission in Permissions.Where(p => p.Type.Equals(PermissionType.Permission)))
+            {
+                Console.WriteLine("\t\t" + permission.Name);
+            }
+
+            Console.WriteLine("\tPermissões opcionais:");
+            foreach (var permission in Permissions.Where(p => p.Type.Equals(PermissionType.OptionalPermission)))
+            {
+                Console.WriteLine("\t\t" + permission.Name);
+            }
+
+            Console.WriteLine("\thosts obrigatórios:");
+            foreach (var permission in Permissions.Where(p => p.Type.Equals(PermissionType.Host)))
+            {
+                Console.WriteLine("\t\t" + permission.Name);
+            }
+
+            Console.WriteLine("\thosts opcionais:");
+            foreach (var permission in Permissions.Where(p => p.Type.Equals(PermissionType.OptionalHost)))
+            {
+                Console.WriteLine("\t\t" + permission.Name);
             }
         }
+        public void PrintURLs()
+        {
+            Console.WriteLine("Endereços Web encontrados na extensão:");
+            foreach(var url in ContainedURLs)
+            {
+                Console.WriteLine(string.Format("{0}\r\t\t\t\t\t\t\t\t|{1}",url.Path, url.ThreatType.ToString()));
+            }
+        }
+        public void PrintVTResult()
+        {
+            Console.WriteLine("Resultados do scan do VirusTotal:");
+            Console.WriteLine(string.Format("\tMotores de anti-malware consultados:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.ScanResults.Count));
+            Console.WriteLine(string.Format("\t*Sem detecção:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.Statistics.NumUndetectd));
+            Console.WriteLine(string.Format("\t*Inofensivo:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.Statistics.NumHarmless));
+            Console.WriteLine(string.Format("\t*Suspeito:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.Statistics.NumSuspicious));
+            Console.WriteLine(string.Format("\t*Malicioso:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.Statistics.NumMalicious));
+            Console.WriteLine(string.Format("\t*Falha no scan:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.Statistics.NumFailure));
+            Console.WriteLine(string.Format("\t*Timeout no scan:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.Statistics.NumTimeout));
+            Console.WriteLine(string.Format("\t*Sem suporte ao arquivo enviado:\r\t\t\t\t\t\t{0:00}", VirusTotalResult.Statistics.NumUnsupported));
+        }
+
     }
 }
 

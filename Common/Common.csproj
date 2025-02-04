@@ -8,12 +8,51 @@
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="String.Similarity" Version="3.0.0" />
     <PackageReference Include="System.IO.Packaging" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
+    <Compile Update="Res\Jsons.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Jsons.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Res\keys.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Keys.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Res\Params.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Params.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Res\SearchStrs.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SearchStrs.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Res\Jsons.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Jsons.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Res\Keys.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>keys.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Res\Params.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Params.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Res\SearchStrs.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>SearchStrs.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
