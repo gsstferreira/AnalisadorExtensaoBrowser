@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Common.WebClasses.GoogleSafeBrowsing
+namespace Common.ClassesWeb.GoogleSafeBrowsing
 {
     //Enum contêm valores equivalentes ao enum "ThreatType" do Google Safe Browsing APIv4 
     [JsonConverter(typeof(JsonStringEnumConverter))]

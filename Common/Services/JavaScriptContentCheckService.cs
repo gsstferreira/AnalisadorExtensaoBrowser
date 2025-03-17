@@ -1,5 +1,5 @@
 ﻿using Common.Classes;
-using Common.WebClasses.NPMRegistry;
+using Common.ClassesWeb.NPMRegistry;
 using F23.StringSimilarity;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Common.WebClasses.VirusTotal
+namespace Common.ClassesWeb.VirusTotal
 {
     public class VTResponseStatistics
     {

@@ -1,4 +1,4 @@
-﻿namespace Common.WebClasses.NPMRegistry
+﻿namespace Common.ClassesWeb.NPMRegistry
 {
     public class NPMPackage
     {

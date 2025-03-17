@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Common.WebClasses.GoogleSafeBrowsing
+namespace Common.ClassesWeb.GoogleSafeBrowsing
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum GSBPlatformType

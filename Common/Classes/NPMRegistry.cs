@@ -1,4 +1,4 @@
-﻿using Common.WebClasses.NPMRegistry;
+﻿using Common.ClassesWeb.NPMRegistry;
 using System;
 using System.Collections.Generic;
 using System.Linq;

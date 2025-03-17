@@ -1,4 +1,4 @@
-﻿using Common.WebClasses.GoogleSafeBrowsing;
+﻿using Common.ClassesWeb.GoogleSafeBrowsing;
 using System.Text;
 
 namespace Common.Classes

@@ -1,5 +1,5 @@
 ﻿using Common.Classes;
-using Common.WebClasses.VirusTotal;
+using Common.ClassesWeb.VirusTotal;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;

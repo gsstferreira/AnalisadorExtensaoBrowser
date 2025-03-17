@@ -1,4 +1,4 @@
-﻿namespace Common.WebClasses.GoogleSafeBrowsing
+﻿namespace Common.ClassesWeb.GoogleSafeBrowsing
 {
     public class GSBThreathMatch
     {

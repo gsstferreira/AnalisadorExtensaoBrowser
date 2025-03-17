@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Common.WebClasses.VirusTotal
+namespace Common.ClassesWeb.VirusTotal
 {
     public class AntivirusScanResult
     {
@@ -18,7 +18,6 @@ namespace Common.WebClasses.VirusTotal
         public string Method { get; set; }
         [JsonPropertyName("category")]
         public string Category { get; set; }
-
         public AntivirusScanResult() { }
     }
 }

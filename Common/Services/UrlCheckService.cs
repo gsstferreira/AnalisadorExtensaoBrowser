@@ -1,5 +1,5 @@
 ﻿using Common.Classes;
-using Common.WebClasses.GoogleSafeBrowsing;
+using Common.ClassesWeb.GoogleSafeBrowsing;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;

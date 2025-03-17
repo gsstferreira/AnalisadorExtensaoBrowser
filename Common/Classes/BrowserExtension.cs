@@ -1,11 +1,6 @@
 ﻿using Common.Enums;
 using System.IO.Compression;
-using System.Security;
-using System.Text;
-using System.Linq;
-using Common.Services;
-using static System.Net.Mime.MediaTypeNames;
-using Common.WebClasses.VirusTotal;
+using Common.ClassesWeb.VirusTotal;
 
 namespace Common.Classes
 {
