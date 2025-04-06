@@ -120,7 +120,7 @@
   <data name="JSFiles" xml:space="preserve">
     <value>JSLibraries</value>
   </data>
-  <data name="PageInfo" xml:space="preserve">
+  <data name="ExtensionInfo" xml:space="preserve">
     <value>ExtensionInfo</value>
   </data>
   <data name="Permissions" xml:space="preserve">

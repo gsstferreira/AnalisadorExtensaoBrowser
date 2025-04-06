@@ -9,16 +9,38 @@ namespace Common.Services
 {
     public class VirusTotalService
     {
+        internal static readonly long crx_size_threshold = 32 * 1024 * 1024;
+
+
         internal static readonly HttpClient _httpCLient = new();
 
         public static void UploadFileToVT(BrowserExtension extension)
         {
+            string uploadUrl = Res.Params.VirusTotalFileURL;
+
+            if (extension.GetCrxSize() > crx_size_threshold) 
+            {
+                var urlRequest = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(Res.Params.VirusTotalUrlRequest),
+                    Headers =
+                    {
+                        {"accept", "application/json"},
+                        {"x-apikey", Res.Keys.virus_total_api_key},
+                    },
+                };
+
+                var urlJson = _httpCLient.Send(urlRequest).Content.ReadAsStringAsync().Result;
+                uploadUrl = JsonNode.Parse(urlJson)["data"].GetValue<string>();
+            }
+
             string fileName = "ext_compressed.zip";
             var sBuilder = new StringBuilder();
             sBuilder.Append("data:application/x-zip-compressed;name=");
             sBuilder.Append(fileName);
             sBuilder.Append(";base64,");
-            sBuilder.Append(extension.CrxB64);
+            sBuilder.Append(extension.GetCrxAsB64());
 
             var request = new HttpRequestMessage
             {
@@ -26,8 +48,8 @@ namespace Common.Services
                 RequestUri = new Uri(Res.Params.VirusTotalFileURL),
                 Headers =
                 {
-                    {"accept", "application/json" },
-                    { "x-apikey", Res.Keys.virus_total_api_key },
+                    {"accept", "application/json"},
+                    {"x-apikey", Res.Keys.virus_total_api_key},
                 },
                 Content = new MultipartFormDataContent
                 {

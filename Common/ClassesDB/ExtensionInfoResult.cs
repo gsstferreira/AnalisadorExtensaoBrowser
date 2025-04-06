@@ -18,7 +18,7 @@ namespace Common.ClassesDB
         public DateTime LastUpdated { get; set; }
 
         public ExtensionInfoResult() : base() { }
-        public ExtensionInfoResult(BrowserExtension extension, string id, string version) : base(id, version) 
+        public ExtensionInfoResult(BrowserExtension extension) : base(extension.ID, extension.Version) 
         {
             PageURL = extension.PageUrl;
             Name = extension.Name;

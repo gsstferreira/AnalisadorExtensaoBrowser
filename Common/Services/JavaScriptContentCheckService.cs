@@ -18,6 +18,8 @@ namespace Common.Services
 {
     public partial class JavaScriptContentCheckService
     {
+        internal static readonly int sleep_between_calls = 1000;
+
         // client para chamadas HTTP
         internal static readonly HttpClient _httpClient = new();
 
@@ -46,11 +48,10 @@ namespace Common.Services
                     {
                         ValidateNPMPackages(jsFile);
                     }
-                    Console.WriteLine(jsFile.ToString());
                 });
                 tasks[i] = task;
                 task.Start();
-                Task.Delay(1000).Wait();
+                Task.Delay(sleep_between_calls).GetAwaiter().GetResult();
             }
             Task.WaitAll(tasks);
         }
@@ -65,6 +66,7 @@ namespace Common.Services
                     extension.ContainedJSFiles.Add(jsFile);
                 }
             }
+            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.DistinctBy(f => f.SizeChecksum)];
             extension.ContainedJSFiles = [.. extension.ContainedJSFiles.OrderBy(f => f.Name)];
         }
         internal static void GetPotentialNPMPackages(JSFile jsFile)
@@ -97,6 +99,7 @@ namespace Common.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 //Console.WriteLine("exception: " + ex.Message);
             }
         }

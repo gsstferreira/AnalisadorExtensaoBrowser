@@ -131,5 +131,14 @@ namespace Common.Res {
                 return ResourceManager.GetString("VirusTotalFileURL", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://www.virustotal.com/api/v3/files/upload_url.
+        /// </summary>
+        public static string VirusTotalUrlRequest {
+            get {
+                return ResourceManager.GetString("VirusTotalUrlRequest", resourceCulture);
+            }
+        }
     }
 }

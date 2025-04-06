@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Classes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,9 +16,9 @@ namespace Common.ClassesDB
             VirusTotalResultURL = string.Empty;
         }
 
-        public ExtensionVTResult(string vtUrl, string id, string version) : base(id, version)
+        public ExtensionVTResult(BrowserExtension extension) : base(extension.ID, extension.Version)
         {
-            VirusTotalResultURL = vtUrl;
+            VirusTotalResultURL = extension.VirusTotalAnalysisUrl;
         }
     }
 }

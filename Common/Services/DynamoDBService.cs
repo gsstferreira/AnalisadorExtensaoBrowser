@@ -1,18 +1,12 @@
 ﻿using Amazon.DynamoDBv2;
-using Amazon;
-using Amazon.DynamoDBv2.Model;
 using Amazon.DynamoDBv2.DocumentModel;
 using System.Text.Json;
 
 namespace Common.Services
 {
-    public  class DynamoDBService
+    public class DynamoDBService
     {
-        private static readonly AmazonDynamoDBClient DBClient = new(new AmazonDynamoDBConfig()
-        {
-            RegionEndpoint = RegionEndpoint.SAEast1,
-            Profile = new Profile("BrowserExtensionAnalysis")
-        });
+        private static readonly AmazonDynamoDBClient DBClient = new AmazonDynamoDBClient();
         public static void SaveItemToDB(string tableName, object entity)
         {
             var json = JsonSerializer.SerializeToDocument(entity).RootElement.ToString();

@@ -11,11 +11,11 @@ namespace Common.ClassesDB
             ExtensionJSFiles = [];
         }
 
-        public ExtensionJSResults(ICollection<JSFile> jsFiles, string id, string version) : base(id, version)
+        public ExtensionJSResults(BrowserExtension extension) : base(extension.ID, extension.Version)
         {
             ExtensionJSFiles = [];
 
-            foreach(var file in jsFiles)
+            foreach(var file in extension.ContainedJSFiles)
             {
                 ExtensionJSFiles.Add(new ExtensionJSFile(file));
             }

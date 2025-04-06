@@ -13,10 +13,10 @@ namespace Common.ClassesDB
             Permissions = [];
         }
 
-        public ExtensionPermissionsResult(ICollection<Permission> permissions, string id, string version) : base(id, version)
+        public ExtensionPermissionsResult(BrowserExtension extension) : base(extension.ID, extension.Version)
         {
             Permissions = [];
-            Permissions.AddRange(permissions);
+            Permissions.AddRange(extension.Permissions);
         }
     }
 }

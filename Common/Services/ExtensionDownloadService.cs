@@ -65,7 +65,6 @@ namespace Common.Services
                 int headerLen = checked((int)BitConverter.ToUInt32(headerLenght, 0));   // byte[] -> uint -> int numericamente equivalente
 
                 crxSize += response.Read(new byte[headerLen], 0, headerLen);     // Remoção do cabeçalho, deixando apenas o .zip no stream
-                extension.CrxArchiveLenght += crxSize;
                 extension.SetCrxArchive(response);
             }
         }

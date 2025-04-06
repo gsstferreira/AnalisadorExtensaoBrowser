@@ -7,6 +7,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{5DFC3E75-C212-408D-BBB4-AC61EA4FB756}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaURLChecker", "LambdaURLChecker\LambdaURLChecker.csproj", "{6DEA0DF6-6AFD-4C8F-BEF9-AC0B72CAFC18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaJSFileChecker", "JSFileCchecker\LambdaJSFileChecker.csproj", "{25F77078-E9D4-4B6B-8C68-F9A5FB6CACC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaExtensionInfo", "LambdaExtensionInfo\LambdaExtensionInfo.csproj", "{2D3D9367-81EC-E488-C2D7-DF8219328A64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaExtensionPermissions", "LambdaExtensionPermissions\LambdaExtensionPermissions.csproj", "{35DD9150-1CA2-CF17-1A45-DA0E50865D02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaVTChecker", "LambdaVTChecker\LambdaVTChecker.csproj", "{A605A0E0-7F62-AEC1-3314-1A6C193BC270}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +31,31 @@ Global
 		{5DFC3E75-C212-408D-BBB4-AC61EA4FB756}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DFC3E75-C212-408D-BBB4-AC61EA4FB756}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DFC3E75-C212-408D-BBB4-AC61EA4FB756}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DEA0DF6-6AFD-4C8F-BEF9-AC0B72CAFC18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DEA0DF6-6AFD-4C8F-BEF9-AC0B72CAFC18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DEA0DF6-6AFD-4C8F-BEF9-AC0B72CAFC18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DEA0DF6-6AFD-4C8F-BEF9-AC0B72CAFC18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25F77078-E9D4-4B6B-8C68-F9A5FB6CACC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25F77078-E9D4-4B6B-8C68-F9A5FB6CACC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25F77078-E9D4-4B6B-8C68-F9A5FB6CACC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25F77078-E9D4-4B6B-8C68-F9A5FB6CACC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D3D9367-81EC-E488-C2D7-DF8219328A64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D3D9367-81EC-E488-C2D7-DF8219328A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D3D9367-81EC-E488-C2D7-DF8219328A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D3D9367-81EC-E488-C2D7-DF8219328A64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35DD9150-1CA2-CF17-1A45-DA0E50865D02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35DD9150-1CA2-CF17-1A45-DA0E50865D02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35DD9150-1CA2-CF17-1A45-DA0E50865D02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35DD9150-1CA2-CF17-1A45-DA0E50865D02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A605A0E0-7F62-AEC1-3314-1A6C193BC270}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A605A0E0-7F62-AEC1-3314-1A6C193BC270}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A605A0E0-7F62-AEC1-3314-1A6C193BC270}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A605A0E0-7F62-AEC1-3314-1A6C193BC270}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F62EAB8D-B553-491B-B981-A464507CDBF3}
 	EndGlobalSection
 EndGlobal

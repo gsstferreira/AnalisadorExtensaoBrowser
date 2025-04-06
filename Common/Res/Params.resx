@@ -141,4 +141,7 @@
   <data name="VirusTotalFileURL" xml:space="preserve">
     <value>https://www.virustotal.com/api/v3/files</value>
   </data>
+  <data name="VirusTotalUrlRequest" xml:space="preserve">
+    <value>https://www.virustotal.com/api/v3/files/upload_url</value>
+  </data>
 </root>

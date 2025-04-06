@@ -16,10 +16,10 @@ namespace Common.ClassesDB
             Urls = [];
         }
 
-        public ExtensionURLsResult(ICollection<Url> urls, string id, string version) : base(id, version)
+        public ExtensionURLsResult(BrowserExtension extension) : base(extension.ID, extension.Version)
         {
             Urls = [];
-            Urls.AddRange(urls);
+            Urls.AddRange(extension.ContainedURLs);
         }
     }
 }

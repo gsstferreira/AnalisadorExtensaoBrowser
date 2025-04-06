@@ -61,20 +61,20 @@ namespace Common.Res {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ExtensionInfo.
+        /// </summary>
+        public static string ExtensionInfo {
+            get {
+                return ResourceManager.GetString("ExtensionInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to JSLibraries.
         /// </summary>
         public static string JSFiles {
             get {
                 return ResourceManager.GetString("JSFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ExtensionInfo.
-        /// </summary>
-        public static string PageInfo {
-            get {
-                return ResourceManager.GetString("PageInfo", resourceCulture);
             }
         }
         

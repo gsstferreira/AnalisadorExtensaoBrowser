@@ -12,6 +12,7 @@ namespace Common.Classes
         public UpdateLevel UpdateLevel { get; set; }
         public string Content { get; set; }
         public long Size { get; set; }
+        public long SizeChecksum { get; set; }
         public List<NPMRegistry> NPMRegistries { get; set; }
         public NPMRegistry? BestMatchedRegistry { get; set; }
         public int TotalFilesChecked { get; set; }
@@ -23,6 +24,7 @@ namespace Common.Classes
             UpdateLevel = UpdateLevel.UNCHECKED;
             NPMRegistries = [];
             Size = entry.Length;
+            SizeChecksum = entry.Crc32 + Size;
             using (var reader = new StreamReader(entry.Open()))
             {
                 Content = reader.ReadToEnd().Trim();
