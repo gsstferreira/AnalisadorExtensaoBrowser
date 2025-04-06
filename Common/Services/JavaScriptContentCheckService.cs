@@ -3,22 +3,16 @@ using Common.ClassesWeb.NPMRegistry;
 using F23.StringSimilarity;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
-using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-
 
 namespace Common.Services
 {
     public partial class JavaScriptContentCheckService
     {
-        internal static readonly int sleep_between_calls = 1000;
+        internal static readonly int _sleep_npm_queries = 1000;
 
         // client para chamadas HTTP
         internal static readonly HttpClient _httpClient = new();
@@ -26,34 +20,38 @@ namespace Common.Services
         //Calcula a similaridade entre textos - https://en.wikipedia.org/wiki/Cosine_similarity
         internal static readonly Cosine _cosine = new(5);
 
-        //Calcula a similaridade entre duas strings - https://en.wikipedia.org/wiki/Levenshtein_distance
-        internal static readonly Levenshtein _levDistance = new();
-
         public static void CheckJSFiles(BrowserExtension extension)
         {
             GetJSFiles(extension);
             var numFiles = extension.ContainedJSFiles.Count;
             Console.WriteLine(string.Format("{0} arquivos JavaScript encontrados na extensão", numFiles));
 
-            var tasks = new Task[numFiles];
+            var tasks = new List<Task>();
 
-            for (int i = 0; i < numFiles; i++)
+            foreach (var file in extension.ContainedJSFiles) 
             {
-                var jsFile = extension.ContainedJSFiles[i];
-
-                var task = new Task(() =>
+                var elapsedTime = GetPotentialNPMPackages(file);
+                if (file.NPMRegistries.Count > 0) 
                 {
-                    GetPotentialNPMPackages(jsFile);
-                    if (jsFile.NPMRegistries.Count > 0)
+                    var task = new Task(() =>
                     {
-                        ValidateNPMPackages(jsFile);
-                    }
-                });
-                tasks[i] = task;
-                task.Start();
-                Task.Delay(sleep_between_calls).GetAwaiter().GetResult();
+                        ValidateNPMPackages(file);
+                        Console.WriteLine(file.ToString());
+                    });
+                    task.Start();
+                }
+                else
+                {
+                    Console.WriteLine(file.ToString());
+                }
+
+                var remainingTime = _sleep_npm_queries - (int)elapsedTime;
+                if (remainingTime > 0) 
+                {
+                    Thread.Sleep(remainingTime);
+                }
             }
-            Task.WaitAll(tasks);
+            Task.WaitAll([.. tasks]);
         }
 
         internal static void GetJSFiles(BrowserExtension extension)
@@ -67,10 +65,13 @@ namespace Common.Services
                 }
             }
             extension.ContainedJSFiles = [.. extension.ContainedJSFiles.DistinctBy(f => f.SizeChecksum)];
-            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.OrderBy(f => f.Name)];
+            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.OrderBy(f => f.GetFullName())];
         }
-        internal static void GetPotentialNPMPackages(JSFile jsFile)
+        internal static long GetPotentialNPMPackages(JSFile jsFile)
         {
+            Stopwatch sw = new();
+            sw.Start();
+
             try
             {
                 var jsName = jsFile.Name.EndsWith(".min") ? jsFile.Name.Replace(".min", string.Empty) : jsFile.Name;
@@ -79,11 +80,9 @@ namespace Common.Services
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var threadBag = new ConcurrentBag<NPMRegistry>();
-
                     var matches = JsonNode.Parse(result)["objects"].AsArray();
 
-                    foreach (var match in matches)
+                    foreach(var match in matches)
                     {
                         var registry = CheckNPMPackage(match);
 
@@ -100,8 +99,10 @@ namespace Common.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                //Console.WriteLine("exception: " + ex.Message);
             }
+
+            sw.Stop();
+            return sw.ElapsedMilliseconds;
         }
 
         internal static void ValidateNPMPackages(JSFile jsFile)
@@ -186,6 +187,7 @@ namespace Common.Services
                     catch (Exception ex)
                     {
                         //Console.WriteLine(registry.Name + " | " + ex.Message + " | " + jsFile.Name);
+                        //Console.WriteLine(package.TarballUrl);
                     }
                 });
 
@@ -210,7 +212,7 @@ namespace Common.Services
                             registry.MostSimilarPackage = package;
                         }
                     }
-                    registry.Packages.Clear();
+                    registry.DisposePackagesList();
                 }
 
                 if (registry.MostSimilarPackage != null)
@@ -223,7 +225,7 @@ namespace Common.Services
                 }
 
             }
-            jsFile.NPMRegistries.Clear();
+            jsFile.DisposeRegistriesList();
         }
 
         internal static NPMRegistry CheckNPMPackage(JsonNode json)
@@ -240,7 +242,6 @@ namespace Common.Services
                     BugTrackerUrl = links["bugs"].Deserialize<string>() ?? string.Empty,
                     NPMPageUrl = links["npm"].Deserialize<string>() ?? string.Empty,
                 };
-
             }
             catch (NullReferenceException e)
             {

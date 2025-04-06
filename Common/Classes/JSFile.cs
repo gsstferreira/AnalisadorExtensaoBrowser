@@ -23,39 +23,52 @@ namespace Common.Classes
 
             UpdateLevel = UpdateLevel.UNCHECKED;
             NPMRegistries = [];
-            Size = entry.Length;
             SizeChecksum = entry.Crc32 + Size;
             using (var reader = new StreamReader(entry.Open()))
             {
                 Content = reader.ReadToEnd().Trim();
             }
+            Size = Content.Length;
             BestMatchedRegistry = null;
             TotalFilesChecked = 0;
         }
 
+        public void DisposeRegistriesList()
+        {
+            NPMRegistries.Clear();
+            NPMRegistries = null;
+        }
+
+        public string GetFullName()
+        {
+            return Path + Name;
+        }
+
         public override string ToString()
         {
-            if(BestMatchedRegistry != null)
+            string spacing = "\r\t\t\t\t\t\t\t\t";
+
+            if (BestMatchedRegistry != null)
             {
                 if(BestMatchedRegistry.MostSimilarPackage != null)
                 {
                     var package = BestMatchedRegistry.MostSimilarPackage;
                     var sBuilder = new StringBuilder();
 
-                    sBuilder.Append(string.Format("{0}\r\t\t\t\t\t| ", Name));
+                    sBuilder.Append(string.Format("{0}{1}| ", GetFullName(),spacing));
 
                     var similarity = package.BestSimilarity;
                     if(similarity >= 0.99)
                     {
-                        sBuilder.Append("Correspondência altíssima ");
+                        sBuilder.Append("Corr. altíssima ");
                     }
                     else  if(similarity > 0.95)
                     {
-                        sBuilder.Append("Correspondência alta ");
+                        sBuilder.Append("Corr. alta ");
                     }
                     else
                     {
-                        sBuilder.Append("Correspondência média ");
+                        sBuilder.Append("Corr. média ");
                     }
                     sBuilder.Append(string.Format("({0:0.00}%) ", similarity * 100));
                     sBuilder.Append(string.Format("com \"{0}\" na versão {1}",package.Name, package.Version));
@@ -63,7 +76,7 @@ namespace Common.Classes
                     return sBuilder.ToString();
                 }
             }
-            return string.Format("{0}\r\t\t\t\t\t| Sem correspondências", Name,TotalFilesChecked);
+            return string.Format("{0}{1}| Sem correspondências", GetFullName(),spacing);
         }
     }
 }

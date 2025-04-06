@@ -40,5 +40,14 @@ namespace Common.Classes
             }
             return false;
         }
+
+        public void DisposePackagesList()
+        {
+            if (Packages != null) 
+            {
+                Packages.Clear();
+                Packages = null;
+            }
+        }
     }
 }
