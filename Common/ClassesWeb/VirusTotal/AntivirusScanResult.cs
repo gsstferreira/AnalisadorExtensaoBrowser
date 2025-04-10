@@ -18,6 +18,13 @@ namespace Common.ClassesWeb.VirusTotal
         public string Method { get; set; }
         [JsonPropertyName("category")]
         public string Category { get; set; }
-        public AntivirusScanResult() { }
+        public AntivirusScanResult() 
+        { 
+            EngineName = string.Empty;
+            EngineVersion = string.Empty;
+            Method = string.Empty;
+            Category = string.Empty;
+            EngineUpdate = DateTime.MinValue;
+        }
     }
 }

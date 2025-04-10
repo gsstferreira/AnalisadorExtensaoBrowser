@@ -43,8 +43,7 @@ namespace Common.Services
 
             return extension;
         }
-
-        internal static void DownloadCrx(BrowserExtension extension)
+        private static void DownloadCrx(BrowserExtension extension)
         {
             // Obter arquivo .crx do repositório Google
             using (var response = _httpClient.GetStreamAsync(extension.DownloadUrl).Result)
@@ -68,7 +67,7 @@ namespace Common.Services
                 extension.SetCrxArchive(response);
             }
         }
-        internal static void ScrapeExtensionInfo(BrowserExtension extension)
+        private static void ScrapeExtensionInfo(BrowserExtension extension)
         {
             // Obter página HTML da extensão para scrapping
             var scrapper = new HtmlAgilityPack.HtmlWeb();
@@ -123,8 +122,7 @@ namespace Common.Services
 
 
         }
-
-        internal static string TrySelectSingleNode(HtmlNode node, string xPath)
+        private static string TrySelectSingleNode(HtmlNode node, string xPath)
         {
             try
             {

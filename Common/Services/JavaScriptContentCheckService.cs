@@ -1,43 +1,30 @@
 ﻿using Common.Classes;
-using Common.ClassesWeb.NPMRegistry;
-using F23.StringSimilarity;
-using ICSharpCode.SharpZipLib.GZip;
+using Common.ClassesJSON;
 using ICSharpCode.SharpZipLib.Tar;
 using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Common.Services
 {
-    public partial class JavaScriptContentCheckService
+    public class JavaScriptContentCheckService
     {
-        internal static readonly int _sleep_npm_queries = 1000;
-
-        // client para chamadas HTTP
-        internal static readonly HttpClient _httpClient = new();
-
-        //Calcula a similaridade entre textos - https://en.wikipedia.org/wiki/Cosine_similarity
-        internal static readonly Cosine _cosine = new(5);
-
+        private const int _sleep_npm_queries = 1000;
+        private static readonly HttpClient _httpClient = new();
         public static void CheckJSFiles(BrowserExtension extension)
         {
             GetJSFiles(extension);
             var numFiles = extension.ContainedJSFiles.Count;
             Console.WriteLine(string.Format("{0} arquivos JavaScript encontrados na extensão", numFiles));
 
-            var tasks = new List<Task>();
+            var tasks = new List<Task<bool>>();
 
             foreach (var file in extension.ContainedJSFiles) 
             {
                 var elapsedTime = GetPotentialNPMPackages(file);
-                if (file.NPMRegistries.Count > 0) 
+                if (file.NPMRegistries.Count > 0)
                 {
-                    var task = new Task(() =>
-                    {
-                        ValidateNPMPackages(file);
-                        Console.WriteLine(file.ToString());
-                    });
+                    var task = new Task<bool>(() => ValidateNPMPackages(file));
+                    tasks.Add(task);
                     task.Start();
                 }
                 else
@@ -46,15 +33,14 @@ namespace Common.Services
                 }
 
                 var remainingTime = _sleep_npm_queries - (int)elapsedTime;
-                if (remainingTime > 0) 
+                if (remainingTime > 0)
                 {
                     Thread.Sleep(remainingTime);
                 }
             }
-            Task.WaitAll([.. tasks]);
+            Task.WhenAll(tasks);
         }
-
-        internal static void GetJSFiles(BrowserExtension extension)
+        private static void GetJSFiles(BrowserExtension extension)
         {
             foreach (var entry in extension.CrxArchive.Entries)
             {
@@ -64,10 +50,9 @@ namespace Common.Services
                     extension.ContainedJSFiles.Add(jsFile);
                 }
             }
-            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.DistinctBy(f => f.SizeChecksum)];
-            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.OrderBy(f => f.GetFullName())];
+            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.DistinctBy(x => x.LenChecksum).OrderBy(x => x.GetFullName())];
         }
-        internal static long GetPotentialNPMPackages(JSFile jsFile)
+        private static long GetPotentialNPMPackages(JSFile jsFile)
         {
             Stopwatch sw = new();
             sw.Start();
@@ -80,32 +65,37 @@ namespace Common.Services
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var matches = JsonNode.Parse(result)["objects"].AsArray();
+                    var queryResult = JsonSerializer.Deserialize<NpmQueryJSON>(result) ?? new NpmQueryJSON();
 
-                    foreach(var match in matches)
+                    foreach (var item in queryResult.QueryResults)
                     {
-                        var registry = CheckNPMPackage(match);
+                        var packName = item.Package.Name;
 
-                        if (!string.IsNullOrEmpty(registry.Name))
+                        if(packName.Contains(jsName) || jsName.Contains(packName)) 
                         {
-                            if (jsName.Contains(registry.Name) || registry.Name.Contains(jsName))
+                            var package = new NPMRegistry
                             {
-                                jsFile.NPMRegistries.Add(registry);
-                            }
+                                Name = packName,
+                                HomepageUrl = item.Package.Links.Homepage,
+                                RepositoryUrl = item.Package.Links.Repository,
+                                BugTrackerUrl = item.Package.Links.BugTracker,
+                                NPMPageUrl = item.Package.Links.Npm,
+                            };
+                            jsFile.NPMRegistries.Add(package);
                         }
                     }
+
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex.Message);
             }
 
             sw.Stop();
             return sw.ElapsedMilliseconds;
         }
-
-        internal static void ValidateNPMPackages(JSFile jsFile)
+        private static bool ValidateNPMPackages(JSFile jsFile)
         {
 
             Parallel.ForEach(jsFile.NPMRegistries, registry =>
@@ -113,88 +103,48 @@ namespace Common.Services
                 var result = _httpClient.GetStringAsync(Res.Params.NPMRegistryGetURL.Replace("[NAME]", registry.Name)).Result;
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var json = JsonNode.Parse(result);
-                    var versions = json["versions"].AsObject();
-                    var dates = json["time"].AsObject();
+                    var queryResult = JsonSerializer.Deserialize<NpmPackageJson>(result) ?? new NpmPackageJson();
 
-                    for (int i = 0; i < versions.Count; i++)
+                    foreach (var version in queryResult.Versions) 
                     {
-                        var package = versions.ElementAt(i);
-
-                        var version = package.Value["version"].Deserialize<string>() ?? string.Empty;
-                        DateTime date = dates[version].Deserialize<DateTime>();
-                        var tarUrl = package.Value["dist"]["tarball"].Deserialize<string>() ?? string.Empty;
-
-                        var npmPackage = new NPMPackage
+                        var package = new NPMPackage
                         {
-                            Name = registry.Name,
-                            Version = version,
-                            ReleaseDate = date,
-                            TarballUrl = tarUrl,
-                            BestSimilarity = 0,
-                            NumJsFiles = 0,
+                            Name = version.Value.Name,
+                            Version = version.Key,
+                            ReleaseDate = queryResult.DateVersions[version.Key],
+                            TarballUrl = version.Value.DstributionDetails.TarballUrl
                         };
-                        registry.Packages.Add(npmPackage);
+                        registry.Packages.Add(package);
                     }
                 }
-                registry.Packages = registry.Packages.OrderByDescending(p => p.ReleaseDate).ToList();
+                registry.Packages = [.. registry.Packages.OrderByDescending(p => p.ReleaseDate)];
             });
-
-            bool perfectMatchFound = false;
 
             foreach (var registry in jsFile.NPMRegistries)
             {
-                if (perfectMatchFound)
-                {
-                    break;
-                }
-
                 double highestSimilarity = 0;
-
-                Parallel.ForEach(registry.Packages, (package, state) =>
+                
+                Parallel.ForEach(registry.Packages, () => new JSCheckBufferBag(), (package, state, sPair) =>
                 {
                     try
                     {
-                        var localPerfectMatch = false;
-
-                        using (var downloadStream = new MemoryStream())
+                        using (var httpStream = _httpClient.GetStreamAsync(package.TarballUrl).Result)
                         {
-                            using (var httpStream = _httpClient.GetStreamAsync(package.TarballUrl).Result)
-                            {
-                                httpStream.CopyTo(downloadStream);
-                            }
-                            downloadStream.Seek(0, SeekOrigin.Begin);
-                            byte[] buffer = new byte[2];
-                            downloadStream.Read(buffer, 0, buffer.Length);
-                            downloadStream.Seek(0, SeekOrigin.Begin);
+                            httpStream.CopyTo(sPair.DownloadStream);
+                        }
 
-                            if (buffer[0] == 0x1F && buffer[1] == 0x8B)
-                            {
-                                using var tgz = new GZipInputStream(downloadStream);
-                                localPerfectMatch = GetTarEntries(tgz, package, jsFile);
-                            }
-                            else
-                            {
-                                localPerfectMatch = GetTarEntries(downloadStream, package, jsFile);
-                            }
-                        }
-                        if (localPerfectMatch)
-                        {
-                            perfectMatchFound = true;
-                            state.Break();
-                        }
+                        GetTarEntries(sPair, package, jsFile);
+                        sPair.Clear();
                     }
                     catch (Exception ex)
                     {
-                        //Console.WriteLine(registry.Name + " | " + ex.Message + " | " + jsFile.Name);
-                        //Console.WriteLine(package.TarballUrl);
+                        Console.WriteLine(ex.Message);
                     }
-                });
-
-                foreach (var pack in registry.Packages)
+                    return sPair;
+                }, (sPair) => 
                 {
-                    jsFile.TotalFilesChecked += pack.NumJsFiles;
-                }
+                    sPair.Close();
+                });
 
                 if (registry.HasAnyMatchedPackages())
                 {
@@ -226,63 +176,29 @@ namespace Common.Services
 
             }
             jsFile.DisposeRegistriesList();
-        }
+            jsFile.DisposeProfile();
 
-        internal static NPMRegistry CheckNPMPackage(JsonNode json)
-        {
-            try
-            {
-                var package = json["package"];
-                var links = package["links"];
-                return new NPMRegistry
-                {
-                    Name = package["name"].Deserialize<string>() ?? string.Empty,
-                    HomepageUrl = links["homepage"].Deserialize<string>() ?? string.Empty,
-                    RepositoryUrl = links["repository"].Deserialize<string>() ?? string.Empty,
-                    BugTrackerUrl = links["bugs"].Deserialize<string>() ?? string.Empty,
-                    NPMPageUrl = links["npm"].Deserialize<string>() ?? string.Empty,
-                };
-            }
-            catch (NullReferenceException e)
-            {
-                Console.WriteLine(e.Message);
-                return new NPMRegistry();
-            }
+            Console.WriteLine(jsFile.ToString());
+            return true;
         }
-        internal static bool GetTarEntries(Stream stream, NPMPackage package, JSFile jsFile)
+        private static void GetTarEntries(JSCheckBufferBag sPair, NPMPackage package, JSFile jsFile)
         {
-            using var tarInputStream = new TarInputStream(stream, Encoding.Default);
-            using var memStream = new MemoryStream();
-            using var sReader = new StreamReader(memStream);
+            var tarInputStream = sPair.GetTarStream();
+
             while (tarInputStream.GetNextEntry() is TarEntry entry)
             {
                 if (entry.Name.EndsWith(".js"))
                 {
-                    package.NumJsFiles += 1;
-                    double sizeRatio = (double)entry.Size / (double)jsFile.Size;
+                    jsFile.TotalFilesChecked++;
+                    double sizeRatio = (double) entry.Size / jsFile.Lenght;
 
                     if (sizeRatio < 1.15 && sizeRatio > 0.85)
                     {
-                        memStream.SetLength(0);
-                        tarInputStream.CopyEntryContents(memStream);
-                        memStream.Seek(0, SeekOrigin.Begin);
-                        var content = sReader.ReadToEnd();
-
-                        var similarity = _cosine.Similarity(jsFile.Content, content);
-
-                        if (similarity > 0.9 && similarity > package.BestSimilarity)
-                        {
-                            package.BestSimilarity = similarity;
-
-                            if (similarity > JSFile.PerfectMatchThreshold)
-                            {
-                                return true;
-                            }
-                        }
+                        var content = sPair.GetEntryContents(tarInputStream);
+                        package.UpdateSimilarity(CosineSimilarityService.GetSimilarity(jsFile, content));
                     }
                 }
             }
-            return false;
         }
     }
 }

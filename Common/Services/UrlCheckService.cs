@@ -20,15 +20,14 @@ namespace Common.Services
 
             CheckURLsSafety(extension);
         }
-
-        internal static void FindURLs(BrowserExtension extension)
+        private static void FindURLs(BrowserExtension extension)
         {
             foreach (var entry in extension.CrxArchive.Entries)
             {
                 var name = entry.Name;
 
                 //Lendo arquivos que podem conter URLs
-                if (MayContainURLs(name))
+                if (CanContainURLs(name))
                 {
                     var reader = new StreamReader(entry.Open());
                     var text = reader.ReadToEnd();
@@ -69,7 +68,7 @@ namespace Common.Services
                 }
             }
         }
-        internal static void CheckURLsSafety(BrowserExtension extension)
+        private static void CheckURLsSafety(BrowserExtension extension)
         {
             var sb = new StringBuilder();
 
@@ -80,7 +79,6 @@ namespace Common.Services
 
             var body = Res.Jsons.GSBLookupRequest
                 .Trim()
-
                 .Replace("[URLS]", sb.ToString().Trim());
 
             var request = new HttpRequestMessage(HttpMethod.Post, Res.Params.GSBLookupURL + Res.Keys.google_api_key)
@@ -96,27 +94,23 @@ namespace Common.Services
             {
                 text = reader.ReadToEnd();
             }
-            var json = JsonNode.Parse(text);
-            var threats = json.Deserialize<GSBResponse>();
+            var threats = JsonSerializer.Deserialize<GSBResponse>(text) ?? new GSBResponse();
 
-            if (threats != null)
+            foreach (var url in extension.ContainedURLs)
             {
-                foreach (var url in extension.ContainedURLs)
+                url.ThreatType = GSBThreatType.SAFE;
+                foreach (var threat in threats.ThreatMatches)
                 {
-                    url.ThreatType = GSBThreatType.SAFE;
-                    foreach (var threat in threats.matches)
+                    if (threat.ThreatEntry.url.Equals(url.Path))
                     {
-                        if (threat.GetUrl().Equals(url.Path))
-                        {
-                            url.ThreatType = threat.threatType;
-                            break;
-                        }
+                        url.ThreatType = threat.ThreatType;
+                        break;
                     }
                 }
             }
             extension.ContainedURLs = [.. extension.ContainedURLs.OrderBy(u => u.Path)];
         }
-        internal static bool MayContainURLs(string fileName)
+        private static bool CanContainURLs(string fileName)
         {
             if(!string.IsNullOrEmpty(fileName))
             {

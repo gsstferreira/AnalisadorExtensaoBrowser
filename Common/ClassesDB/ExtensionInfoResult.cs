@@ -17,7 +17,16 @@ namespace Common.ClassesDB
         public long NumDownloads { get; set; }
         public DateTime LastUpdated { get; set; }
 
-        public ExtensionInfoResult() : base() { }
+        public ExtensionInfoResult() : base() 
+        { 
+            PageURL = string.Empty;
+            Name = string.Empty;
+            Provider = string.Empty;
+            Rating = -1;
+            NumReviews = -1;
+            NumDownloads = -1;
+            LastUpdated = DateTime.MinValue;
+        }
         public ExtensionInfoResult(BrowserExtension extension) : base(extension.ID, extension.Version) 
         {
             PageURL = extension.PageUrl;

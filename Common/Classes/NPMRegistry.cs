@@ -1,5 +1,4 @@
-﻿using Common.ClassesWeb.NPMRegistry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,7 +17,6 @@ namespace Common.Classes
         public string NPMPageUrl { get; set; }
         public List<NPMPackage> Packages { get; set; }
         public NPMPackage? MostSimilarPackage { get; set; }
-        public int TotalJsFiles { get; set; }
         public NPMRegistry() 
         { 
             Name = string.Empty;
@@ -30,7 +28,6 @@ namespace Common.Classes
             NPMPageUrl = string.Empty;
             Packages = [];
             MostSimilarPackage = null;
-            TotalJsFiles = 0;
         }
         public bool HasAnyMatchedPackages()
         {
@@ -43,11 +40,7 @@ namespace Common.Classes
 
         public void DisposePackagesList()
         {
-            if (Packages != null) 
-            {
-                Packages.Clear();
-                Packages = null;
-            }
+            Packages?.Clear();
         }
     }
 }

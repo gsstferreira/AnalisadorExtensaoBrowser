@@ -1,15 +1,20 @@
-﻿namespace Common.ClassesWeb.GoogleSafeBrowsing
+﻿using System.Text.Json.Serialization;
+
+namespace Common.ClassesWeb.GoogleSafeBrowsing
 {
     public class GSBThreathMatch
     {
-        public GSBThreatType threatType { get; set; }
-        public GSBPlatformType platformType { get; set; }
-        public GSBThreatEntry threat { get; set; }
-        public GSBThreathMatch() { }
-
-        public string GetUrl()
+        [JsonPropertyName("threatType")]
+        public GSBThreatType ThreatType { get; set; }
+        [JsonPropertyName("platformType")]
+        public GSBPlatformType PlatformType { get; set; }
+        [JsonPropertyName("threat")]
+        public GSBThreatEntry ThreatEntry { get; set; }
+        public GSBThreathMatch() 
         {
-            return this.threat.url;
+            ThreatType = GSBThreatType.UNCHECKED;
+            PlatformType = GSBPlatformType.PLATFORM_TYPE_UNSPECIFIED;
+            ThreatEntry = new GSBThreatEntry();
         }
     }
 }

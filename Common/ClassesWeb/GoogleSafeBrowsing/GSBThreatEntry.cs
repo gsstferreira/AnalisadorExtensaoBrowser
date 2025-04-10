@@ -11,5 +11,12 @@ namespace Common.ClassesWeb.GoogleSafeBrowsing
         public string hash { get; set; }
         public string url { get; set; }
         public string digest { get; set; }
+
+        public GSBThreatEntry()
+        {
+            hash = string.Empty;
+            url = string.Empty;
+            digest = string.Empty;
+        }
     }
 }

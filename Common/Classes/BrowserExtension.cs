@@ -6,6 +6,8 @@ namespace Common.Classes
 {
     public class BrowserExtension
     {
+        private readonly MemoryStream CrxStream = new();
+
         public string PageUrl { get; set; }
         public string DownloadUrl { get; set; }
         public string SimpleName { get; set; }
@@ -24,7 +26,6 @@ namespace Common.Classes
         public ZipArchive CrxArchive { get; set; }
         public string VirusTotalAnalysisUrl { get; set; }
 
-        internal readonly MemoryStream CrxStream = new();
         public BrowserExtension(string pageUrl, string downloadUrl, string name, string id) 
         { 
             PageUrl = pageUrl;
@@ -40,14 +41,15 @@ namespace Common.Classes
             Permissions = [];
             ContainedURLs = [];
             ContainedJSFiles = [];
+
+            VirusTotalResult = new VTResponse();
+            CrxArchive = new ZipArchive(new MemoryStream(0), ZipArchiveMode.Create);
         }
 
         public void SetCrxArchive(Stream stream)
         {
             stream.CopyTo(CrxStream);
             CrxStream.Seek(0, SeekOrigin.Begin);
-
-            var len = (int)CrxStream.Length;
             CrxArchive = new ZipArchive(CrxStream);
         }
 

@@ -12,7 +12,13 @@ namespace Common.ClassesDB
         public string ExtensionID { get; set; }
         public string ExtensionVersion { get; set; }
         public DateTimeOffset DateCompletion { get; set; }
-        public AnalysisResult() { }
+        public AnalysisResult() 
+        {
+            AnalysisID = string.Empty;
+            ExtensionID = string.Empty;
+            ExtensionVersion = string.Empty;
+            DateCompletion = DateTimeOffset.MinValue;
+        }
         public AnalysisResult(string id, string version) {
             ExtensionID = id;
             ExtensionVersion = version;

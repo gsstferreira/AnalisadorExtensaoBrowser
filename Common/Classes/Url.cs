@@ -1,5 +1,4 @@
 ﻿using Common.ClassesWeb.GoogleSafeBrowsing;
-using System.Text;
 
 namespace Common.Classes
 {
@@ -8,6 +7,11 @@ namespace Common.Classes
         public string Path { get; set; }
         public GSBThreatType ThreatType { get; set; }
 
+        public Url() 
+        {
+            Path = string.Empty;
+            ThreatType = GSBThreatType.UNCHECKED;
+        }
         public Url(string url) 
         {
             Path = url;
@@ -17,18 +21,6 @@ namespace Common.Classes
         public override string ToString()
         {
             return string.Format("{0} | {1}", Path, ThreatType.ToString());
-        }
-        public override bool Equals(object obj)
-        {
-            if (obj is not Url x) return false;
-            else
-            {
-                return Path.Equals(x.Path);
-            }
-        }
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
         }
     }   
 }

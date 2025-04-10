@@ -17,6 +17,12 @@ namespace Common.ClassesWeb.VirusTotal
         public DateTime Date {  get; set; }
         [JsonPropertyName("stats")]
         public VTResponseStatistics Statistics { get; set; }
-        public VTResponse() { }
+        public VTResponse() 
+        { 
+            ScanResults = [];
+            Status = string.Empty;
+            Date = DateTime.MinValue;
+            Statistics = new VTResponseStatistics();
+        }
     }
 }

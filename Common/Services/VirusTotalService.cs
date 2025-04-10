@@ -1,4 +1,5 @@
 ﻿using Common.Classes;
+using Common.ClassesJSON;
 using Common.ClassesWeb.VirusTotal;
 using System.Net.Http.Headers;
 using System.Text;
@@ -9,10 +10,8 @@ namespace Common.Services
 {
     public class VirusTotalService
     {
-        internal static readonly long crx_size_threshold = 32 * 1024 * 1024;
-
-
-        internal static readonly HttpClient _httpCLient = new();
+        private static readonly long crx_size_threshold = 32 * 1024 * 1024;
+        private static readonly HttpClient _httpCLient = new();
 
         public static void UploadFileToVT(BrowserExtension extension)
         {
@@ -32,7 +31,7 @@ namespace Common.Services
                 };
 
                 var urlJson = _httpCLient.Send(urlRequest).Content.ReadAsStringAsync().Result;
-                uploadUrl = JsonNode.Parse(urlJson)["data"].GetValue<string>();
+                uploadUrl = (JsonSerializer.Deserialize<VTUploadUrlJson>(urlJson) ?? new VTUploadUrlJson()).UploadUrl;
             }
 
             string fileName = "ext_compressed.zip";
@@ -45,7 +44,7 @@ namespace Common.Services
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(Res.Params.VirusTotalFileURL),
+                RequestUri = new Uri(uploadUrl),
                 Headers =
                 {
                     {"accept", "application/json"},
@@ -69,8 +68,9 @@ namespace Common.Services
             };
 
             var response = _httpCLient.Send(request).Content.ReadAsStringAsync().Result;
-            var json = JsonNode.Parse(response)["data"];
-            extension.VirusTotalAnalysisUrl = json["links"]["self"].GetValue<string>();
+            var content = JsonSerializer.Deserialize<VTQueueJson>(response) ?? new VTQueueJson();
+
+            extension.VirusTotalAnalysisUrl = content.Information.AnalysisLinks.AnalysisUrl;
         }
         public static void CheckVTAnalysis(BrowserExtension extension)
         {
@@ -91,31 +91,34 @@ namespace Common.Services
                     }
                 };
 
-                var response = _httpCLient.Send(request);
-                var content = response.Content.ReadAsStringAsync().Result;
-
-                var json = JsonObject.Parse(content)["data"]["attributes"].AsObject();
+                var response = _httpCLient.Send(request).Content.ReadAsStringAsync().Result;
+                var content = JsonSerializer.Deserialize<VTResultJson>(response) ?? new VTResultJson();
 
                 var vtResult = new VTResponse 
                 {
-                    Date = DateTime.UnixEpoch.AddSeconds(json["date"].GetValue<long>()),
-                    Status = json["status"].GetValue<string>(),
-                    Statistics = json["stats"].Deserialize<VTResponseStatistics>(),
+                    Date = DateTime.UnixEpoch.AddSeconds(content.ResultData.Attributes.DateCompletion),
+                    Status = content.ResultData.Attributes.Status,
+                    Statistics = content.ResultData.Attributes.ResultStats,
                     ScanResults = []
                 };
 
-                var avResults = json["results"].AsObject();
-
-                foreach(var att in avResults)
+                foreach(var engineResult in content.ResultData.Attributes.Results)
                 {
-                    var result = att.Value.Deserialize<AntivirusScanResult>() ?? new AntivirusScanResult();
+                    var value = engineResult.Value;
 
-                    var rawDate = int.Parse(att.Value["engine_update"].GetValue<string>());
-                    var year = rawDate / 10000;
-                    var month = (rawDate % 10000)/100;
-                    var day = rawDate % 100;
+                    var rawDate = long.TryParse(value.EngineUpdate, out long parsed);
+                    int year = (int)parsed / 10000;
+                    int month = (int)(parsed % 10000) / 100;
+                    int day = (int)parsed % 100;
 
-                    result.EngineUpdate = new DateTime(year,month,day);
+                    var result = new AntivirusScanResult 
+                    { 
+                        Method = value.Method,
+                        EngineVersion = value.EngineVersion,
+                        EngineName = value.EngineName,
+                        Category = value.Category,
+                        EngineUpdate = new DateTime(year, month, day),
+                    };
 
                     vtResult.ScanResults.Add(result);
                 }
