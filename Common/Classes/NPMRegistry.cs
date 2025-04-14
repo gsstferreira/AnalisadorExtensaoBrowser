@@ -9,8 +9,10 @@ namespace Common.Classes
     public class NPMRegistry
     {
         public string Name { get; set; }
-        public string LatestVersion { get; set; }
-        public DateTime LastUpdated { get; set; }
+        public string LatestVersionStable { get; set; }
+        public string LatestVersionDevelopment { get; set; }
+        public DateTime LatestUpdateStable { get; set; }
+        public DateTime LatestUpdateDevelopment { get; set; }
         public string HomepageUrl { get; set; }
         public string RepositoryUrl { get; set; }
         public string BugTrackerUrl { get; set; }
@@ -20,8 +22,10 @@ namespace Common.Classes
         public NPMRegistry() 
         { 
             Name = string.Empty;
-            LatestVersion = string.Empty;
-            LastUpdated = DateTime.MinValue;
+            LatestVersionStable = string.Empty;
+            LatestVersionDevelopment = string.Empty;
+            LatestUpdateStable = DateTime.MinValue;
+            LatestUpdateDevelopment = DateTime.MinValue;
             HomepageUrl = string.Empty;
             RepositoryUrl = string.Empty;
             BugTrackerUrl = string.Empty;

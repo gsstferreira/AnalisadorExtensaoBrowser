@@ -16,7 +16,7 @@ namespace Common.ClassesDB
             VirusTotalResultURL = string.Empty;
         }
 
-        public ExtensionVTResult(BrowserExtension extension) : base(extension.ID, extension.Version)
+        public ExtensionVTResult(BrowserExtension extension) : base(extension.Id, extension.Version)
         {
             VirusTotalResultURL = extension.VirusTotalAnalysisUrl;
         }

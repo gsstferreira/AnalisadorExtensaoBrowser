@@ -1,0 +1,35 @@
+﻿@model List<UrlViewModel> 
+<div>
+    <br />
+    <div>
+        <h5><b>Endereços encontrados:</b> @(Model.Count)</h5>
+    </div>
+    <br />
+    <div class="table-responsive">
+        <table class="table table-bordered border-primary table-striped">
+            <thead class="table-bordered border-primary" style="background-color:lightblue">
+                <tr style="align-content:center;text-align:center">
+                    <th scope="col"><h6><b>Endereço Web</b></h6></th>
+                    <th scope="col"><h6><b>Tipo de Endereço</b></h6></th>
+                    <th scope="col"><h6><b>Usa Certificado (HTTPS)</b></h6></th>
+                    <th scope="col"><h6><b>Risco</b></h6></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var url in Model)
+                {
+                    <tr>
+                        <td style="align-content:center">
+                            <div>@(url.OriginalUrl)</div>
+                            <div style="color:dimgray">Host determinado: @(url.Host)</div>
+                        </td>
+                        <td style="align-content:center;text-align:center">@url.UrlType</td>
+                        <td style="align-content:center;text-align:center">@(url.IsHttps ? "Sim" : "Não")</td>
+                        <td style="align-content:center;text-align:center">@(url.Threat)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

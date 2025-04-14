@@ -22,7 +22,7 @@ namespace Common.ClassesLambda
         public LambdaRequestBody(BrowserExtension extension)
         {
             ExtensionPageUrl = extension.PageUrl;
-            ExtensionId = extension.ID;
+            ExtensionId = extension.Id;
             ExtensionVersion = extension.Version;
         }
     }

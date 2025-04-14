@@ -16,7 +16,7 @@ namespace Common.ClassesDB
             Urls = [];
         }
 
-        public ExtensionURLsResult(BrowserExtension extension) : base(extension.ID, extension.Version)
+        public ExtensionURLsResult(BrowserExtension extension) : base(extension.Id, extension.Version)
         {
             Urls = [];
             Urls.AddRange(extension.ContainedURLs);

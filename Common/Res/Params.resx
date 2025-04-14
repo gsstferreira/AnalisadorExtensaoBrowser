@@ -129,11 +129,17 @@
   <data name="GSBLookupURL" xml:space="preserve">
     <value>https://safebrowsing.googleapis.com/v4/threatMatches:find?key=</value>
   </data>
+  <data name="NpmPackageUrl" xml:space="preserve">
+    <value>https://www.npmjs.com/package/</value>
+  </data>
   <data name="NPMRegistryGetURL" xml:space="preserve">
     <value>https://registry.npmjs.com/[NAME]</value>
   </data>
   <data name="NPMRegistryQueryURL" xml:space="preserve">
     <value>https://registry.npmjs.com/-/v1/search?text=[NAME]&amp;size=5</value>
+  </data>
+  <data name="SnykDbUrl" xml:space="preserve">
+    <value>https://security.snyk.io/package/npm/[pack]/[version]</value>
   </data>
   <data name="ViewURL" xml:space="preserve">
     <value>https://chromewebstore.google.com/detail/</value>

@@ -26,10 +26,10 @@ namespace Common.ClassesJSON
     public class NpmRegistryJson
     {
         [JsonPropertyName("package")]
-        public NpmRegistryEntryJson Package { get; set; }
+        public NpmRegistryEntryJson Registry { get; set; }
         public NpmRegistryJson()
         {
-            Package = new NpmRegistryEntryJson();
+            Registry = new NpmRegistryEntryJson();
         }
     }
     public class NpmRegistryEntryJson

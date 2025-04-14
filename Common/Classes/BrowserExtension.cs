@@ -7,11 +7,11 @@ namespace Common.Classes
     public class BrowserExtension
     {
         private readonly MemoryStream CrxStream = new();
-
         public string PageUrl { get; set; }
+        public string IconUrl { get; set; }
         public string DownloadUrl { get; set; }
         public string SimpleName { get; set; }
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Version { get; set; }
         public string Provider { get; set; }
@@ -26,12 +26,36 @@ namespace Common.Classes
         public ZipArchive CrxArchive { get; set; }
         public string VirusTotalAnalysisUrl { get; set; }
 
+        public BrowserExtension()
+        {
+            CrxStream = new MemoryStream();
+            PageUrl = string.Empty;
+            IconUrl = string.Empty;
+            DownloadUrl = string.Empty;
+            SimpleName = string.Empty;
+            Id = string.Empty;
+            Name = string.Empty;
+            Version = string.Empty;
+            Provider = string.Empty;
+            VirusTotalAnalysisUrl = string.Empty;
+            LastUpdated = DateTime.MinValue;
+            ContainedJSFiles = [];
+            ContainedURLs = [];
+            Permissions = [];
+            VirusTotalResult = new VTResponse();
+
+            CrxArchive = new ZipArchive(new MemoryStream(0), ZipArchiveMode.Create);
+            Rating = -1;
+            NumReviews = -1;
+            NumDownloads = -1;
+        }
         public BrowserExtension(string pageUrl, string downloadUrl, string name, string id) 
         { 
             PageUrl = pageUrl;
+            IconUrl = string.Empty;
             DownloadUrl = downloadUrl;
             SimpleName = name;
-            ID = id;
+            Id = id;
             Name = string.Empty;
             Version = string.Empty;
             Provider = string.Empty;

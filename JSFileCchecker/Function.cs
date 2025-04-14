@@ -1,7 +1,7 @@
 using Amazon.Lambda.Core;
 using Common.ClassesDB;
 using Common.ClassesLambda;
-using Common.Services;
+using Common.Handlers;
 using System.Text.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -22,13 +22,14 @@ public class Function
     {
         var response = new LambdaResponseBody();
 
-        var extension = ExtensionDownloadService.GetExtension(input.ExtensionPageUrl, Common.Enums.ExtDownloadType.OnlyCrxFile);
+        var extension = ExtensionDownloadhandler.GetExtension(input.ExtensionPageUrl, Common.Enums.ExtDownloadType.OnlyCrxFile);
 
-        JavaScriptContentCheckService.CheckJSFiles(extension);
+        JavaScriptCheckHandler.CheckJSFiles(extension);
+        extension.Version = input.ExtensionVersion;
 
-        var extensionJSResult = new ExtensionJSResults(extension);
+        var extensionJSResult = new ExtensionJSResult(extension);
 
-        DynamoDBService.SaveItemToDB(Common.Res.DBTables.JSFiles, extensionJSResult);
+        DynamoDBHandler.UpdateEntry(Common.Res.DBTables.JSFiles, extensionJSResult);
         response.SetSuccess(true, ".js files checked!");
         return JsonSerializer.Serialize(response);
     }

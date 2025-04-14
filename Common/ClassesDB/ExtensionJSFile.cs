@@ -1,10 +1,4 @@
-﻿using Amazon.Runtime;
-using Common.Classes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Common.Classes;
 
 namespace Common.ClassesDB
 {
@@ -13,17 +7,27 @@ namespace Common.ClassesDB
         public string Name { get; set; }
         public string MatchedLibrary { get; set; }
         public string MatchedVersion { get; set; }
-        public string LastVersion { get; set; }
+        public string LatestVersionStable { get; set; }
+        public string LatestVersionDevelopment { get; set; }
         public DateTime MatchedVersionDate { get; set; }
-        public DateTime LastVersionDate { get; set; }
-        public double MatchConfidence { get; set; }
+        public DateTime LatestUpdateStable { get; set; }
+        public DateTime LatestUpdateDevelopment { get; set; }
+        public double Similarity { get; set; }
         public bool HasMatch { get; set; }
         public ExtensionJSFile()
         {
             Name = string.Empty;
             MatchedLibrary = string.Empty;
             MatchedVersion = string.Empty;
-            LastVersion = string.Empty;
+            LatestVersionStable = string.Empty;
+            LatestVersionDevelopment = string.Empty;
+
+            HasMatch = false;
+            Similarity = 0;
+
+            MatchedVersionDate = DateTime.MinValue;
+            LatestUpdateStable = DateTime.MinValue;
+            LatestUpdateDevelopment = DateTime.MinValue;
         }
 
         public ExtensionJSFile(JSFile jsFile) 
@@ -31,10 +35,12 @@ namespace Common.ClassesDB
             Name = jsFile.Name;
             MatchedLibrary = string.Empty;
             MatchedVersion = string.Empty;
-            LastVersion = string.Empty;
+            LatestVersionStable = string.Empty;
+            LatestVersionDevelopment = string.Empty;
             MatchedVersionDate = DateTime.MinValue;
-            LastVersionDate = DateTime.MinValue;
-            MatchConfidence = -1;
+            LatestUpdateStable = DateTime.MinValue;
+            LatestUpdateDevelopment = DateTime.MinValue;
+            Similarity = -1;
             HasMatch = false;
 
             if(jsFile.BestMatchedRegistry != null)
@@ -42,13 +48,16 @@ namespace Common.ClassesDB
                 if(jsFile.BestMatchedRegistry.MostSimilarPackage != null)
                 {
                     HasMatch = true;
+
                     var package = jsFile.BestMatchedRegistry.MostSimilarPackage;
                     MatchedLibrary = package.Name;
                     MatchedVersion = package.Version;
                     MatchedVersionDate = package.ReleaseDate;
-                    LastVersion = jsFile.BestMatchedRegistry.LatestVersion;
-                    LastVersionDate = jsFile.BestMatchedRegistry.LastUpdated;
-                    MatchConfidence = package.BestSimilarity;
+                    LatestVersionStable = jsFile.BestMatchedRegistry.LatestVersionStable;
+                    LatestVersionDevelopment = jsFile.BestMatchedRegistry.LatestVersionDevelopment;
+                    LatestUpdateStable = jsFile.BestMatchedRegistry.LatestUpdateStable;
+                    LatestUpdateDevelopment = jsFile.BestMatchedRegistry.LatestUpdateDevelopment;
+                    Similarity = package.BestSimilarity;
                 }
             }
         }

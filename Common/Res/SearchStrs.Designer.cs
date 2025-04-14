@@ -97,6 +97,15 @@ namespace Common.Res {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to //img[contains(@class, &apos;rBxtY&apos;)].
+        /// </summary>
+        public static string xPath_icon {
+            get {
+                return ResourceManager.GetString("xPath_icon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to //li[contains(@class, &apos;ZbWJPd uBIrad&apos;)].
         /// </summary>
         public static string xPath_LastUpdate {

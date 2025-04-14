@@ -1,6 +1,7 @@
-﻿using Common.Services;
+﻿using Common.Handlers;
 using System.Collections;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Common.Classes
@@ -30,7 +31,7 @@ namespace Common.Classes
                 Content = reader.ReadToEnd().Trim();
             }
             Lenght = Content.Length;
-            CosineSimilarityService.SetCosineProfile(this);
+            SimilarityHandler.SetCosineProfile(this);
             BestMatchedRegistry = null;
             TotalFilesChecked = 0;
         }
@@ -63,7 +64,7 @@ namespace Common.Classes
                     var similarity = package.BestSimilarity;
                     sBuilder.Append(string.Format("({0:0.00}%) similar com ", similarity * 100));
                     sBuilder.Append(string.Format("\"{0}\" na versão {1}",package.Name, package.Version));
-                    sBuilder.Append(string.Format(" - Última versão: {0}", BestMatchedRegistry.LatestVersion));
+                    sBuilder.Append(string.Format(" - Última versão: {0}", BestMatchedRegistry.LatestVersionStable));
                     sBuilder.Append(string.Format(" - {0} arquivos analisados", TotalFilesChecked));
                     return sBuilder.ToString();
                 }

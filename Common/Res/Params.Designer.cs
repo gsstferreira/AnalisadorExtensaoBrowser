@@ -97,6 +97,15 @@ namespace Common.Res {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://www.npmjs.com/package/.
+        /// </summary>
+        public static string NpmPackageUrl {
+            get {
+                return ResourceManager.GetString("NpmPackageUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://registry.npmjs.com/[NAME].
         /// </summary>
         public static string NPMRegistryGetURL {
@@ -111,6 +120,15 @@ namespace Common.Res {
         public static string NPMRegistryQueryURL {
             get {
                 return ResourceManager.GetString("NPMRegistryQueryURL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://security.snyk.io/package/npm/[pack]/[version].
+        /// </summary>
+        public static string SnykDbUrl {
+            get {
+                return ResourceManager.GetString("SnykDbUrl", resourceCulture);
             }
         }
         

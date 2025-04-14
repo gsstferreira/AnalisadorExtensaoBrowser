@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaExtensionPermissions"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LambdaVTChecker", "LambdaVTChecker\LambdaVTChecker.csproj", "{A605A0E0-7F62-AEC1-3314-1A6C193BC270}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalysisWebApp", "AnalysisWebApp\AnalysisWebApp.csproj", "{E0667FD7-FEEC-4604-96CB-2409C7C7A406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAppTexts", "WebAppTexts\WebAppTexts.csproj", "{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +85,22 @@ Global
 		{A605A0E0-7F62-AEC1-3314-1A6C193BC270}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A605A0E0-7F62-AEC1-3314-1A6C193BC270}.Release|ARM64.ActiveCfg = Release|Any CPU
 		{A605A0E0-7F62-AEC1-3314-1A6C193BC270}.Release|ARM64.Build.0 = Release|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{E0667FD7-FEEC-4604-96CB-2409C7C7A406}.Release|ARM64.Build.0 = Release|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{D6F8CB8A-50AD-4B12-A20E-7E517CAA5CB1}.Release|ARM64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

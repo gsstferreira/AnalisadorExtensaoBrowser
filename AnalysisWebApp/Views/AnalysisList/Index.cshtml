@@ -1,0 +1,28 @@
+﻿@model AnalysisListViewModel
+@{
+    <div class="album">
+        <div class="container">
+            <div class="row">
+
+                @foreach (var ext in Model.AnalysisInfos)
+                {
+                    <div class="col-md-3">
+                        <div class="card mb-3 box-shadow border-secondary
+">
+                            <a href="Analysis?id=@(ext.AnalysisID)" style="text-decoration: none; color:black">
+                                <img class="card-img" src="@(ext.IconUrl)" data-holder-rendered="true" style="height: 50%; width: 50%; display: block; align-items:center; margin-left: 25%; margin-top: 5%">
+                                <div class="card-body">
+                                    <p class="card-text">@(ext.Name)</p>
+                                    <p>Ver. @(ext.ExtensionVersion)</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Analisado em @(ext.DateCompletion.ToString("dd/MM/yyyy"))</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
