@@ -1,44 +1,59 @@
 ﻿@model ExtensionPermissionGroup
 <div>
     <br />
-    <div class="table-responsive" style="margin-left:10%;margin-right:10%">
-        <table class="table table-bordered border-primary table-striped">
-            <thead class="table-bordered border-primary" style="background-color:lightblue">
-                <tr style="text-align:center">
-                    <th scope="col"><h6><b>Tipo</b></h6></th>
-                    <th scope="col"><h6><b>Permissão</b></h6></th>
-                </tr>
-            </thead>
-            <tbody style="text-align:center">
-                @foreach (var permission in Model.Permissions)
-                {
-                    <tr>
-                        <td>Permissões Obrigatórias</td>
-                        <td><i>@permission</i></td>
-                    </tr>
-                }
-                @foreach (var permission in Model.OptionalPermissions)
-                {
-                    <tr>
-                        <td>Permissões Opcionais</td>
-                        <td><i>@permission</i></td>
-                    </tr>
-                }
-                @foreach (var permission in Model.Hosts)
-                {
-                    <tr>
-                        <td>Hosts Obrigatórios</td>
-                        <td><i>@permission</i></td>
-                    </tr>
-                }
-                @foreach (var permission in Model.OptionalHosts)
-                {
-                    <tr>
-                        <td>Hosts Opcionais</td>
-                        <td><i>@permission</i></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div>
+        @if (Model is null)
+        {
+            <h5>Análise em andamento...</h5>
+        }
+        else
+        {
+            <h5>Análise concluída!</h5>
+        }
     </div>
+
+    @if (Model is not null)
+    {
+        <br />
+        <div class="table-responsive" style="margin-left:10%;margin-right:10%">
+            <table class="table table-bordered border-primary table-striped">
+                <thead class="table-bordered border-primary" style="background-color:lightblue">
+                    <tr style="text-align:center">
+                        <th scope="col"><h6><b>Tipo</b></h6></th>
+                        <th scope="col"><h6><b>Permissão</b></h6></th>
+                    </tr>
+                </thead>
+                <tbody style="text-align:center">
+                    @foreach (var permission in Model.Permissions)
+                    {
+                        <tr>
+                            <td>Permissões Obrigatórias</td>
+                            <td><i>@permission</i></td>
+                        </tr>
+                    }
+                    @foreach (var permission in Model.OptionalPermissions)
+                    {
+                        <tr>
+                            <td>Permissões Opcionais</td>
+                            <td><i>@permission</i></td>
+                        </tr>
+                    }
+                    @foreach (var permission in Model.Hosts)
+                    {
+                        <tr>
+                            <td>Hosts Obrigatórios</td>
+                            <td><i>@permission</i></td>
+                        </tr>
+                    }
+                    @foreach (var permission in Model.OptionalHosts)
+                    {
+                        <tr>
+                            <td>Hosts Opcionais</td>
+                            <td><i>@permission</i></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

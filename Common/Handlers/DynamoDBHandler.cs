@@ -1,19 +1,25 @@
 ﻿using Amazon;
 using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.DynamoDBv2.Model;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Common.Handlers
 {
     public class DynamoDBHandler
     {
-        private static readonly string? isLambda = Environment.GetEnvironmentVariable("LAMBDA_TASK_ROOT");
-
-        private static AmazonDynamoDBClient GetClient()
+        private static readonly string isLambda;
+        private static readonly AmazonDynamoDBClient DBClient;
+        private static readonly DynamoDBContext Context;
+        static DynamoDBHandler()
         {
-            if(isLambda is null)
+            isLambda = Environment.GetEnvironmentVariable("LAMBDA_TASK_ROOT") ?? string.Empty;
+
+            if (string.IsNullOrEmpty(isLambda))
             {
-                return new AmazonDynamoDBClient(new AmazonDynamoDBConfig
+                DBClient = new AmazonDynamoDBClient(new AmazonDynamoDBConfig
                 {
                     RegionEndpoint = RegionEndpoint.SAEast1,
                     Profile = new Profile("BrowserExtensionAnalysis")
@@ -21,44 +27,51 @@ namespace Common.Handlers
             }
             else
             {
-                return new AmazonDynamoDBClient();
+                DBClient = new AmazonDynamoDBClient();
             }
-        }
 
-        private static readonly AmazonDynamoDBClient DBClient = GetClient();
-        public static void UpdateEntry(string tableName, object entity)
+            Context = new DynamoDBContext(DBClient);
+        }
+        public static Dictionary<string,AttributeValue> MapAsAttributes<T>(T entity)
         {
-            var json = JsonSerializer.SerializeToDocument(entity).RootElement.ToString();
-
-            var table = Table.LoadTable(DBClient, tableName);
-            table.PutItemAsync(Document.FromJson(json)).Wait();
+            return Context.ToDocument(entity).ToAttributeMap();
         }
+        public static void PutEntry<T>(string tableName, T entity)
+        {
 
-        public static T GetEntry<T>(string tableName, string key) where T : new()
+            var doc = Context.ToDocument(entity);
+            var table = Table.LoadTable(DBClient, tableName);
+
+            table.PutItemAsync(doc).Wait();
+        }
+        public static void UpdateEntry(UpdateItemRequest request)
+        {
+            DBClient.UpdateItemAsync(request).Wait();
+        }
+        public static T? GetEntry<T>(string tableName, string key) where T : new()
         {
             try
             {
                 var table = Table.LoadTable(DBClient, tableName);
                 var doc = table.GetItemAsync(key).Result;
 
-                if(doc != null)
+                if(doc is not null)
                 {
-                    var entityJson = doc.ToJson();
-                    return JsonSerializer.Deserialize<T>(entityJson) ?? new();
+                    return Context.FromDocument<T>(doc) ?? default;
                 }
                 else
                 {
-                    return new();
+                    return default;
                 }
             }
             catch (Exception ex) 
             {
                 var log = string.Format("{0} - id = {1}: {2}", tableName, key, ex.Message);
                 Console.WriteLine(log);
-                return new();
+                return default;
             }
         }
-        public static List<T> GetEntries<T>(string tableName, int quantity, int offset)
+        public static List<T> GetEntries<T>(string tableName)
         {
             var list = new List<T>();
 
@@ -69,15 +82,17 @@ namespace Common.Handlers
 
             foreach (var entry in results) 
             {
-                var jsonEntry = entry.ToJson();
-                var item = JsonSerializer.Deserialize<T>(jsonEntry);
+                var item = Context.FromDocument<T>(entry) ?? default;
 
-                if(item != null)
-                {
-                    list.Add(item);
-                }
+                if(item is not null) list.Add(item);
             }
             return list;
+        }
+
+        public static void DeleteEntry(string tableName, string key)
+        {
+            var table = Table.LoadTable(DBClient, tableName);
+            table.DeleteItemAsync(key).Wait();
         }
     }
 }

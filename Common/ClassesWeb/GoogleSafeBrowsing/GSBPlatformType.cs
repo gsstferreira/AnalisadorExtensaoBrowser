@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Common.ClassesWeb.GoogleSafeBrowsing
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<GSBPlatformType>))]
     public enum GSBPlatformType
     {
         PLATFORM_TYPE_UNSPECIFIED = 0,

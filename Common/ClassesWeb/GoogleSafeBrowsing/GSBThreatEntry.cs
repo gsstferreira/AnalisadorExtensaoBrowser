@@ -2,21 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Common.ClassesWeb.GoogleSafeBrowsing
 {
     public class GSBThreatEntry
     {
-        public string hash { get; set; }
-        public string url { get; set; }
-        public string digest { get; set; }
+        [JsonPropertyName("hash")]
+        public string Hash { get; set; }
+        [JsonPropertyName("url")]
+        public string Url { get; set; }
+        [JsonPropertyName("digest")]
+        public string Digest { get; set; }
 
         public GSBThreatEntry()
         {
-            hash = string.Empty;
-            url = string.Empty;
-            digest = string.Empty;
+            Hash = string.Empty;
+            Url = string.Empty;
+            Digest = string.Empty;
         }
     }
 }

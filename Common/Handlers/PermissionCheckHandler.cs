@@ -1,6 +1,8 @@
 ﻿using Common.Classes;
 using Common.ClassesJSON;
 using Common.Enums;
+using Common.JsonSourceGenerators;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Common.Handlers
@@ -9,8 +11,8 @@ namespace Common.Handlers
     {
         public static void ParsePermissions(BrowserExtension extension)
         {
-            var manifest = extension.CrxArchive.GetEntry("manifest.json");
-            if (manifest != null)
+            var manifest = extension.ExtensionContent.GetEntry("manifest.json");
+            if (manifest is not null)
             {
                 string content = string.Empty;
 
@@ -19,7 +21,7 @@ namespace Common.Handlers
                     content = reader.ReadToEnd();
                 }
 
-                var manifestJson = JsonSerializer.Deserialize<ManifestJson>(content) ?? new ManifestJson();
+                var manifestJson = JsonSerializer.Deserialize(content, ManifestSG.Default.ManifestJson) ?? new ManifestJson();
                 
                 foreach (var permission in manifestJson.Permissions) 
                 {

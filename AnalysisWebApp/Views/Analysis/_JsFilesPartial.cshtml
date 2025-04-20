@@ -1,90 +1,106 @@
 ﻿@using Common.ClassesDB
-@using WebAppTexts
-@model List<JsFileViewModel>
+@model JsListViewModel
 
 <div>
     <br />
     <div>
-        <h5><b>Arquivos analisados:</b> @(Model.Count)</h5>
-        @{
-            var mathCount = Model.Where(f => f.HasMatch).Count();
+        @if (Model is null)
+        {
+            <h5>Análise em andamento...</h5>
         }
-        <h5>
-            <b>Correspondências encontradas:</b> @(mathCount) / @(Model.Count)
-        </h5>
+        else
+        {
+            var list = Model.JsFiles;
+            var mathCount = list.Where(f => f.HasMatch).Count();
+
+            @if (list.Count != Model.TotalCount)
+            {
+                <h5>Análise em andamento...</h5>
+            }
+            else
+            {
+                <h5>Análise finalizada!</h5>
+            }
+            <h6><b>Arquivos analisados:</b> @(list.Count) / @(Model.TotalCount)</h6>
+            <h6><b>Correspondências encontradas:</b> @(mathCount) / @(Model.TotalCount)</h6>
+        }
     </div>
-    <br />
-    <div class="table-responsive">
-        <table class="table table-bordered border-primary table-striped">
-            <thead class="table-bordered border-primary" style="background-color:lightblue">
-                <tr style="align-content:center">
-                    <th scope="col" style="width:25%;text-align:center">
-                        <h6>
-                            <b>Arquivo</b>
-                        </h6>
-                    </th>
-                    <th scope="col" style="width:35%;text-align:center">
-                        <h6>
-                            <b>
-                                Pacote Correspondente
-                            </b>
-                        </h6>
-                    </th>
-                    <th scope="col" style="width:10%;text-align:center">
-                        <h6>
-                            <b>Similaridade</b>
-                        </h6>
-                    </th>
-                    <th scope="col" style="width:30%;text-align:center">
-                        <h6>
-                            <b>Vulnerabilidades Conhecidas</b>
-                        </h6>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var file in Model)
-                {
-                    <tr>
-                        <td style="align-content:center;text-align:center">
-                            <h5>@(file.Name)</h5>
-                        </td>
-                        <td style="align-content:center">
-                            @if (file.HasMatch)
-                            {
-                                <h5>
-                                    <a href="@(file.NpmPackageLink)" target="_blank" style="text-decoration:none">npm - @(file.MatchedLibrary) <img src="~/icons/open_in_new.svg" width="20px" height="20px" style="margin-bottom:3px" /></a>
-                                </h5>
-                                <div><b>Versão utilizada:</b> @(file.GetMatchedVersionInfo())</div>
-                                <div style="color:dimgrey"><b>Versão mais recente (release):</b> @(file.GetLatestVersionStableInfo())</div>
-                                <div style="color:dimgrey"><b>Versão mais recente (dev):</b> @(file.GetLatestVersionDevInfo())</div>
-                            }
-                            else
-                            {
-                                <h6 style="text-align:center">Sem correspondência</h6>
-                            }
-                        </td>
-                        <td style="align-content:center;text-align:center">
+    @if (Model is not null && Model.JsFiles.Count > 0)
+    {
+        var list = Model.JsFiles;
+        <br />
+        <div class="table-responsive">
+            <table class="table table-bordered border-primary table-striped">
+                <thead class="table-bordered border-primary" style="background-color:lightblue">
+                    <tr style="align-content:center">
+                        <th scope="col" style="width:25%;text-align:center">
                             <h6>
-                                @(file.HasMatch ? file.Similarity : "-")
+                                <b>Arquivo</b>
                             </h6>
-                        </td>
-                        <td style="align-content:center;text-align:center">
-                            @if (file.HasMatch)
-                            {
-                                <h6>
-                                    <a href="@(file.SnykVulnerabilityLink)" target="_blank" style="text-decoration:none">Snyk - @(file.MatchedLibrary) @(file.MatchedVersion) <img src="~/icons/open_in_new.svg" width="20px" height="20px" style="margin-bottom:3px" /></a>
-                                </h6>
-                            }
-                            else
-                            {
-                                <h6>-</h6>
-                            }
-                        </td>
+                        </th>
+                        <th scope="col" style="width:35%;text-align:center">
+                            <h6>
+                                <b>
+                                    Pacote Correspondente
+                                </b>
+                            </h6>
+                        </th>
+                        <th scope="col" style="width:10%;text-align:center">
+                            <h6>
+                                <b>Similaridade</b>
+                            </h6>
+                        </th>
+                        <th scope="col" style="width:30%;text-align:center">
+                            <h6>
+                                <b>Vulnerabilidades Conhecidas</b>
+                            </h6>
+                        </th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var file in list)
+                    {
+                        <tr>
+                            <td style="align-content:center;text-align:center">
+                                <h6>@(file.Name)</h6>
+                            </td>
+                            <td style="align-content:center">
+                                @if (file.HasMatch)
+                                {
+                                    <h6>
+                                        <a href="@(file.NpmPackageLink)" target="_blank" style="text-decoration:none">npm - @(file.MatchedLibrary) <img src="~/icons/open_in_new.svg" width="16px" height="16px" style="margin-bottom:3px" /></a> -  <b>@(file.GetMatchedVersionInfo())</b>
+                                    </h6>
+                                    <small style="color:dimgrey"><b>Versão mais recente (release):</b> @(file.GetLatestVersionStableInfo())</small>
+                                    <br />
+                                    <small style="color:dimgrey"><b>Versão mais recente (dev):</b> @(file.GetLatestVersionDevInfo())</small>
+                                }
+                                else
+                                {
+                                    <h6 style="text-align:center">Sem correspondência</h6>
+                                }
+                            </td>
+                            <td style="align-content:center;text-align:center">
+                                <h6>
+                                    @(file.HasMatch ? file.Similarity : "-")
+                                </h6>
+                            </td>
+                            <td style="align-content:center;text-align:center">
+                                @if (file.HasMatch)
+                                {
+                                    <h6>
+                                        <a href="@(file.SnykVulnerabilityLink)" target="_blank" style="text-decoration:none">Snyk - @(file.MatchedLibrary) @(file.MatchedVersion) <img src="~/icons/open_in_new.svg" width="20px" height="20px" style="margin-bottom:3px" /></a>
+                                    </h6>
+                                }
+                                else
+                                {
+                                    <h6>-</h6>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
 

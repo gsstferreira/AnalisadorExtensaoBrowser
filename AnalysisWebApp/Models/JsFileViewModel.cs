@@ -1,4 +1,5 @@
 ﻿using Common.ClassesDB;
+using Res;
 using System.Web;
 
 namespace AnalysisWebApp.Models
@@ -51,8 +52,8 @@ namespace AnalysisWebApp.Models
             var nameEncoded = HttpUtility.UrlEncode(MatchedLibrary);
             var versionEncoded = HttpUtility.UrlEncode(MatchedVersion);
 
-            SnykVulnerabilityLink = Common.Res.Params.SnykDbUrl.Replace("[pack]", nameEncoded).Replace("[version]", versionEncoded);
-            NpmPackageLink = Common.Res.Params.NpmPackageUrl + MatchedLibrary;
+            SnykVulnerabilityLink = Params.SnykDbUrl.Replace("[pack]", nameEncoded).Replace("[version]", versionEncoded);
+            NpmPackageLink = Params.NpmPackageUrl + MatchedLibrary;
         }
 
         public string GetMatchedVersionInfo()

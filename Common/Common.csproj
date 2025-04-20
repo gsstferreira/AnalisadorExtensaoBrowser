@@ -7,12 +7,34 @@
     <Platforms>AnyCPU;ARM64</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsTrimmable>False</IsTrimmable>
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <IsTrimmable>False</IsTrimmable>
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsTrimmable>False</IsTrimmable>
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <IsTrimmable>False</IsTrimmable>
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.7.402.35" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.406.17" />
-    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.400" />
-    <PackageReference Include="AWSSDK.Lambda" Version="3.7.412.13" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.402.42" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.406.24" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.400">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="AWSSDK.Lambda" Version="3.7.412.20" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4">
       <TreatAsUsed>true</TreatAsUsed>
@@ -23,54 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Res\DBTables.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DBTables.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Res\Jsons.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Jsons.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Res\keys.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Keys.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Res\Params.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Params.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Res\SearchStrs.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SearchStrs.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Res\DBTables.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>DBTables.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Res\Jsons.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Jsons.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Res\Keys.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>keys.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Res\Params.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Params.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Res\SearchStrs.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>SearchStrs.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <ProjectReference Include="..\Resources\Res.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,7 @@ using Amazon.Lambda.Core;
 using Common.ClassesDB;
 using Common.ClassesLambda;
 using Common.Handlers;
+using Res;
 using System.Text.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -11,26 +12,21 @@ namespace LambdaVTChecker;
 
 public class Function
 {
-    
     /// <summary>
     /// A simple function that takes a string and does a ToUpper
     /// </summary>
-    /// <param name="input">The event for the Lambda function handler to process.</param>
+    /// <param name="payload">The event for the Lambda function handler to process.</param>
     /// <param name="context">The ILambdaContext that provides methods for logging and describing the Lambda environment.</param>
     /// <returns></returns>
-    public string FunctionHandler(LambdaRequestBody input, ILambdaContext context)
+    public string FunctionHandler(LambdaAnalysisPayload payload, ILambdaContext context)
     {
-        var response = new LambdaResponseBody();
-
-        var extension = ExtensionDownloadhandler.GetExtension(input.ExtensionPageUrl, Common.Enums.ExtDownloadType.OnlyCrxFile);
+        var extension = ExtensionDownloadhandler.GetExtension(payload.ExtensionPageUrl, Common.Enums.ExtDownloadType.OnlyCrxFile);
 
         VirusTotalHandler.UploadFileToVT(extension);
-        extension.Version = input.ExtensionVersion;
 
-        var vtCheckResult = new ExtensionVTResult(extension);
+        var vtCheckResult = new ExtensionVTResult(extension, payload.AnalysisId);
 
-        DynamoDBHandler.UpdateEntry(Common.Res.DBTables.VirusTotal, vtCheckResult);
-        response.SetSuccess(true, "VirusTotal Analysis queued.");
-        return JsonSerializer.Serialize(response);
+        DynamoDBHandler.PutEntry(DBTables.VirusTotal, vtCheckResult);
+        return string.Empty;
     }
 }

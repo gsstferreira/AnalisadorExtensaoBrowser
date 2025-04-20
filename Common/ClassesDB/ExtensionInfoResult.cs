@@ -12,6 +12,8 @@ namespace Common.ClassesDB
         public string PageURL { get; set; }
         public string IconUrl { get; set; }
         public string Name { get; set; }
+        public string Id { get; set; }
+        public string Version { get; set; }
         public string Provider { get; set; }
         public float Rating { get; set; }
         public int NumReviews { get; set; }
@@ -24,12 +26,14 @@ namespace Common.ClassesDB
             IconUrl = string.Empty;
             Name = string.Empty;
             Provider = string.Empty;
+            Id = string.Empty;
+            Version = string.Empty;
             Rating = -1;
             NumReviews = -1;
             NumDownloads = -1;
             LastUpdated = DateTime.MinValue;
         }
-        public ExtensionInfoResult(BrowserExtension extension) : base(extension.Id, extension.Version) 
+        public ExtensionInfoResult(BrowserExtension extension, string analysisId) : base(analysisId) 
         {
             PageURL = extension.PageUrl;
             IconUrl = extension.IconUrl;
@@ -39,6 +43,8 @@ namespace Common.ClassesDB
             NumReviews = extension.NumReviews;
             NumDownloads = extension.NumDownloads;
             LastUpdated = extension.LastUpdated;
+            Id = extension.Id;
+            Version = extension.Version;
         }
     }
 }

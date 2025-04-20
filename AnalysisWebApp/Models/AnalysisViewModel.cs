@@ -20,10 +20,10 @@ namespace AnalysisWebApp.Models
         public string ExtensionPageUrl { get; set; }
         public string ExtensionsIconUrl { get; set; }
         public string ExtensionLastUpdate { get; set; }
-        public ExtensionPermissionGroup ExtensionPermissions { get; set; }
-        public List<JsFileViewModel> ExtensionJSFiles { get; set; }
-        public List<UrlViewModel> ExtensionUrls { get; set; }
-        public VirusTotalViewModel ExtensionVTResponse { get; set; }
+        public ExtensionPermissionGroup? ExtensionPermissions { get; set; }
+        public JsListViewModel? ExtensionJSFiles { get; set; }
+        public List<UrlViewModel>? ExtensionUrls { get; set; }
+        public VirusTotalViewModel? ExtensionVTResponse { get; set; }
 
         public AnalysisViewModel() 
         {
@@ -40,14 +40,12 @@ namespace AnalysisWebApp.Models
             ExtensionsIconUrl = string.Empty;
             ExtensionLastUpdate = string.Empty;
 
-            ExtensionPermissions = new ExtensionPermissionGroup();
+            ExtensionPermissions = default;
+            ExtensionVTResponse = default;
 
-            ExtensionJSFiles = [];
-            ExtensionUrls = [];
-
-            ExtensionVTResponse = new VirusTotalViewModel();
+            ExtensionJSFiles = default;
+            ExtensionUrls = default;
         }
-
         private static string NumberToString(long number)
         {
             if(number > 1000000)
@@ -65,18 +63,17 @@ namespace AnalysisWebApp.Models
                 return number.ToString();
             }
         }
-
-        public void ParseExtensionInfo(ExtensionInfoResult result)
+        public void ParseExtensionInfo(ExtensionInfoResult? result)
         {
-            if (result != null)
+            if (result is not null)
             {
                 AnalysisId = result.AnalysisID;
                 AnalysisDateTime = result.DateCompletion.ToString(Constants.DateStringFormat);
 
                 ExtensionName = result.Name;
                 ExtensionProvider = result.Provider;
-                ExtensionVersion = result.ExtensionVersion;
-                ExtensionId = result.ExtensionID;
+                ExtensionVersion = result.Version;
+                ExtensionId = result.Id;
                 ExtensionPageUrl = result.PageURL;
                 ExtensionsIconUrl = result.IconUrl;
 
@@ -86,32 +83,41 @@ namespace AnalysisWebApp.Models
                 ExtensionDownloads = NumberToString(result.NumDownloads);
             }
         }
-        public void ParseExtensionJSFiles(ExtensionJSResult result)
+        public void ParseExtensionJSFiles(ExtensionJSResult? result)
         {
-            if (result != null)
+            var list = new List<JsFileViewModel>();
+
+            if (result is not null)
             {
                 foreach (var file in result.ExtensionJSFiles) 
                 {
-                    ExtensionJSFiles.Add(new JsFileViewModel(file));
+                    list.Add(new JsFileViewModel(file));
                 }
-                ExtensionJSFiles = [.. ExtensionJSFiles.OrderBy(f => !f.HasMatch).ThenBy(f => f.Name)];
+                ExtensionJSFiles = new()
+                {
+                    JsFiles = [.. list.OrderBy(f => !f.HasMatch).ThenBy(f => f.Name)],
+                    TotalCount = result.TotalCount
+                };
             }
         }
-        public void ParseExtensionUrls(ExtensionURLsResult result)
+        public void ParseExtensionUrls(ExtensionURLsResult? result)
         {
-            if (result != null) 
+            if (result is not null) 
             {
+                var list = new List<UrlViewModel>();
+
                 foreach (var url in result.Urls)
                 {
-                    ExtensionUrls.Add(new UrlViewModel(url));
+                    list.Add(new UrlViewModel(url));
                 }
-                ExtensionUrls = [.. ExtensionUrls.OrderBy(u => u.Threat).ThenBy(u => u.OriginalUrl)];
+                ExtensionUrls = [.. list.OrderBy(u => u.Threat).ThenBy(u => u.OriginalUrl)];
             }
         }
-        public void ParseExtensionPermissions(ExtensionPermissionsResult result) 
+        public void ParseExtensionPermissions(ExtensionPermissionsResult? result) 
         { 
-            if (result != null) 
+            if (result is not null) 
             {
+                ExtensionPermissions = new();
                 foreach (var entry in result.Permissions)
                 {
                     switch (entry.Type)
@@ -132,13 +138,23 @@ namespace AnalysisWebApp.Models
                 }
             }
         }
-        public void ParseExtensionVTresult(ExtensionVTResult result)
+        public void ParseExtensionVTresult(ExtensionVTResult? result)
         {
-            if (result != null)
+            if (result is not null)
             {
-                var analysis = VirusTotalHandler.CheckVTAnalysis(result.VirusTotalResultURL);
+                if (!string.IsNullOrEmpty(result.VirusTotalResultURL))
+                {
+                    var analysis = VirusTotalHandler.CheckVTAnalysis(result.VirusTotalResultURL);
 
-                ExtensionVTResponse = new VirusTotalViewModel(analysis);
+                    ExtensionVTResponse = new VirusTotalViewModel(analysis);
+                }
+                else
+                {
+                    ExtensionVTResponse = new VirusTotalViewModel
+                    {
+                        IsComplete = true
+                    };
+                }
             }
         }
     }

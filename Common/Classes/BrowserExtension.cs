@@ -1,12 +1,14 @@
 ﻿using Common.Enums;
 using System.IO.Compression;
 using Common.ClassesWeb.VirusTotal;
+using System.Security.Cryptography;
 
 namespace Common.Classes
 {
     public class BrowserExtension
     {
-        private readonly MemoryStream CrxStream = new();
+        private MemoryStream? CrxFileStream;
+        private MemoryStream? ZipFileStream;
         public string PageUrl { get; set; }
         public string IconUrl { get; set; }
         public string DownloadUrl { get; set; }
@@ -23,12 +25,11 @@ namespace Common.Classes
         public List<Url> ContainedURLs { get; set; }
         public List<JSFile> ContainedJSFiles { get; set; }
         public VTResponse VirusTotalResult { get; set; }
-        public ZipArchive CrxArchive { get; set; }
+        public ZipArchive ExtensionContent { get; set; }
         public string VirusTotalAnalysisUrl { get; set; }
 
         public BrowserExtension()
         {
-            CrxStream = new MemoryStream();
             PageUrl = string.Empty;
             IconUrl = string.Empty;
             DownloadUrl = string.Empty;
@@ -44,13 +45,13 @@ namespace Common.Classes
             Permissions = [];
             VirusTotalResult = new VTResponse();
 
-            CrxArchive = new ZipArchive(new MemoryStream(0), ZipArchiveMode.Create);
+            ExtensionContent = new ZipArchive(new MemoryStream(0), ZipArchiveMode.Create);
             Rating = -1;
             NumReviews = -1;
             NumDownloads = -1;
         }
-        public BrowserExtension(string pageUrl, string downloadUrl, string name, string id) 
-        { 
+        public BrowserExtension(string pageUrl, string downloadUrl, string name, string id)
+        {
             PageUrl = pageUrl;
             IconUrl = string.Empty;
             DownloadUrl = downloadUrl;
@@ -67,53 +68,75 @@ namespace Common.Classes
             ContainedJSFiles = [];
 
             VirusTotalResult = new VTResponse();
-            CrxArchive = new ZipArchive(new MemoryStream(0), ZipArchiveMode.Create);
+            ExtensionContent = new ZipArchive(new MemoryStream(0), ZipArchiveMode.Create);
         }
 
-        public void SetCrxArchive(Stream stream)
+        public void GetCrxFile(MemoryStream streamCrx, MemoryStream streamZip)
         {
-            stream.CopyTo(CrxStream);
-            CrxStream.Seek(0, SeekOrigin.Begin);
-            CrxArchive = new ZipArchive(CrxStream);
+            CrxFileStream = streamCrx;
+            ZipFileStream = streamZip;
+            streamZip.Seek(0, SeekOrigin.Begin);
+            ExtensionContent = new ZipArchive(streamZip, ZipArchiveMode.Read);
         }
 
         public string GetCrxAsB64()
         {
-            CrxStream.Seek(0, SeekOrigin.Begin);
-            var len = (int) CrxStream.Length;
-            byte[] data = new byte[len];
-            CrxStream.Read(data, 0, len);
-            return Convert.ToBase64String(data);
+            if (CrxFileStream is null) return string.Empty;
+            else
+            {
+                CrxFileStream.Seek(0, SeekOrigin.Begin);
+
+                var cryptoStream = new CryptoStream(CrxFileStream, new ToBase64Transform(), CryptoStreamMode.Read);
+                var reader = new StreamReader(cryptoStream);
+
+                string content = reader.ReadToEnd();
+                CrxFileStream.Seek(0, SeekOrigin.Begin);
+
+                return content;
+            }
         }
 
         public long GetCrxSize()
         {
-            return CrxStream.Length;
+            return CrxFileStream is not null ? CrxFileStream.Length : 0;
         }
 
-        public void ExtractToPath(string path)
+        public void WriteZipToPath(string path)
         {
-            string simpleName = this.PageUrl.Split('/')[4];
-            try
+            if (ZipFileStream is null) Console.WriteLine("No file to write!");
+            else
             {
-                if (path.EndsWith("/"))
+                string simpleName = PageUrl.Split('/')[4];
+                ZipFileStream.Seek(0, SeekOrigin.Begin);
+                try
                 {
-                    this.CrxArchive.ExtractToDirectory(path + simpleName);
+                    if (path.EndsWith('/'))
+                    {
+                        using var writer = File.Create(path + simpleName + ".zip");
+                        var buffer = ZipFileStream.ToArray();
+                        writer.Write(buffer, 0, buffer.Length);
+                    }
+                    else
+                    {
+                        using var writer = File.Create(path + "/" + simpleName + ".zip");
+                        var buffer = ZipFileStream.ToArray();
+                        writer.Write(buffer, 0, buffer.Length);
+                    }
+
                 }
-                else
+                catch (IOException)
                 {
-                    this.CrxArchive.ExtractToDirectory(path + "/" + simpleName);
+                    Console.WriteLine("Extensão já foi extraída no local!");
                 }
-                
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                finally
+                {
+                    ZipFileStream.Seek(0, SeekOrigin.Begin);
+                }
             }
-            catch (IOException)
-            {
-                Console.WriteLine("Extensão já foi extraída no local!");
-            }
-            catch (Exception ex) 
-            {
-                Console.WriteLine(ex.Message);
-            }   
         }
     }
 }

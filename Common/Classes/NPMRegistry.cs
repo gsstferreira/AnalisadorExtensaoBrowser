@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Common.Classes
 {
-    public class NPMRegistry
+    public class NpmRegistry
     {
         public string Name { get; set; }
         public string LatestVersionStable { get; set; }
@@ -18,8 +18,9 @@ namespace Common.Classes
         public string BugTrackerUrl { get; set; }
         public string NPMPageUrl { get; set; }
         public List<NPMPackage> Packages { get; set; }
-        public NPMPackage? MostSimilarPackage { get; set; }
-        public NPMRegistry() 
+        public NPMPackage? BestPackage { get; set; }
+        public int TotalNumFilesChecked { get; set; }
+        public NpmRegistry() 
         { 
             Name = string.Empty;
             LatestVersionStable = string.Empty;
@@ -31,7 +32,7 @@ namespace Common.Classes
             BugTrackerUrl = string.Empty;
             NPMPageUrl = string.Empty;
             Packages = [];
-            MostSimilarPackage = null;
+            BestPackage = null;
         }
         public bool HasAnyMatchedPackages()
         {
@@ -40,6 +41,11 @@ namespace Common.Classes
                 if (package.BestSimilarity > 0) return true;
             }
             return false;
+        }
+
+        public void CountNumFilesChecked()
+        {
+            TotalNumFilesChecked = Packages.Sum(x => x.FilesChecked);
         }
 
         public void DisposePackagesList()

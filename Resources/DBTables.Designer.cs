@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Common.Res {
+namespace Res {
     using System;
     
     
@@ -22,24 +22,24 @@ namespace Common.Res {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Jsons {
+    public class DBTables {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Jsons() {
+        internal DBTables() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Common.Res.Jsons", typeof(Jsons).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Res.DBTables", typeof(DBTables).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace Common.Res {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,22 +61,47 @@ namespace Common.Res {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {
-        ///  &quot;client&quot;: {
-        ///    &quot;clientId&quot;: &quot;BrowserExtensionAnalyzer&quot;,
-        ///    &quot;clientVersion&quot;: &quot;0.1&quot;
-        ///  },
-        ///  &quot;threatInfo&quot;: {
-        ///    &quot;threatTypes&quot;: [&quot;MALWARE&quot;, &quot;SOCIAL_ENGINEERING&quot;, &quot;UNWANTED_SOFTWARE&quot;, &quot;POTENTIALLY_HARMFUL_APPLICATION&quot;],
-        ///    &quot;platformTypes&quot;: [&quot;ANY_PLATFORM&quot;],
-        ///    &quot;threatEntryTypes&quot;: [&quot;URL&quot;],
-        ///    &quot;threatEntries&quot;: [[URLS]]
-        ///  }
-        ///}.
+        ///   Looks up a localized string similar to ExtensionInfo.
         /// </summary>
-        internal static string GSBLookupRequest {
+        public static string ExtensionInfo {
             get {
-                return ResourceManager.GetString("GSBLookupRequest", resourceCulture);
+                return ResourceManager.GetString("ExtensionInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JSLibraries.
+        /// </summary>
+        public static string JSFiles {
+            get {
+                return ResourceManager.GetString("JSFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Permissions.
+        /// </summary>
+        public static string Permissions {
+            get {
+                return ResourceManager.GetString("Permissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to URLs.
+        /// </summary>
+        public static string URLs {
+            get {
+                return ResourceManager.GetString("URLs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VirusTotalChecks.
+        /// </summary>
+        public static string VirusTotal {
+            get {
+                return ResourceManager.GetString("VirusTotal", resourceCulture);
             }
         }
     }

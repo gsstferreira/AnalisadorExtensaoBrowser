@@ -1,7 +1,9 @@
 ﻿using Common.Classes;
 using Common.ClassesWeb.GoogleSafeBrowsing;
 using Common.Enums;
+using Common.JsonSourceGenerators;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -16,6 +18,7 @@ namespace Common.Handlers
         {
             Timeout = TimeSpan.FromSeconds(5)
         };
+
         public static void CheckURLs(BrowserExtension extension)
         {
             Console.WriteLine("Buscando string em formato de URL na extensão...");
@@ -28,7 +31,7 @@ namespace Common.Handlers
         }
         private static List<Url> FindURLs(BrowserExtension extension)
         {
-            foreach (var entry in extension.CrxArchive.Entries)
+            foreach (var entry in extension.ExtensionContent.Entries)
             {
                 var name = entry.Name;
 
@@ -101,14 +104,14 @@ namespace Common.Handlers
             {
                 text = reader.ReadToEnd();
             }
-            var threats = JsonSerializer.Deserialize<GSBResponse>(text) ?? new GSBResponse();
+            var threats = JsonSerializer.Deserialize(text, GSBResponseSG.Default.GSBResponse) ?? new GSBResponse();
 
             foreach (var url in urls)
             {
                 url.ThreatType = GSBThreatType.SAFE;
                 foreach (var threat in threats.ThreatMatches)
                 {
-                    if (threat.ThreatEntry.url.Equals(url.OriginalUrl))
+                    if (threat.ThreatEntry.Url.Equals(url.OriginalUrl))
                     {
                         url.ThreatType = threat.ThreatType;
                         break;
@@ -158,96 +161,90 @@ namespace Common.Handlers
             var filterBag = new ConcurrentBag<Url>();
             var tasks = new List<Task<bool>>();
 
-            foreach (var url in urls)
+            Parallel.ForEach(urls, url =>
             {
-                var task = new Task<bool>(() =>
+                var headUrl = url.OriginalUrl;
+                if (!headUrl.StartsWith("http"))
                 {
-                    var headUrl = url.OriginalUrl;
-                    if (!headUrl.StartsWith("http"))
+                    headUrl = "http://" + headUrl;
+                }
+
+                var uri = new Uri(headUrl);
+                bool dnsSolved = false;
+
+                try
+                {
+                    var ipAddresses = Dns.GetHostAddresses(uri.Host);
+                    if (ipAddresses.Length > 0)
                     {
-                        headUrl = "http://" + headUrl;
+                        Console.WriteLine("DNS SOLVED - " + headUrl);
+                        dnsSolved = true;
                     }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("DNS UNSOLVED - " + headUrl);
+                    dnsSolved = false;
+                }
 
-                    var uri = new Uri(headUrl);
-                    bool dnsSolved = false;
-
+                if (dnsSolved)
+                {
                     try
                     {
-                        var ipAddresses = Dns.GetHostAddresses(uri.Host);
-                        if (ipAddresses.Length > 0)
-                        {
-                            dnsSolved = true;
-                        }
-                    }
-                    catch (Exception) 
-                    {
-                        dnsSolved = false;
-                    }
 
-                    if(dnsSolved)
-                    {
-                        try
-                        {
-                            var response = _pingHttpClient.Send(new HttpRequestMessage(HttpMethod.Head, headUrl));
-                            var requestMessage = response.RequestMessage;
+                        var response = _pingHttpClient.Send(new HttpRequestMessage(HttpMethod.Head, headUrl));
+                        var requestMessage = response.RequestMessage;
 
-                            if (requestMessage != null) 
+                        if (requestMessage is not null)
+                        {
+                            var address = requestMessage.RequestUri;
+
+                            if (address is not null)
                             {
-                                var address = requestMessage.RequestUri;
-
-                                if (address != null) 
+                                filterBag.Add(new Url
                                 {
-                                    filterBag.Add(new Url
-                                    {
-                                        OriginalUrl = url.OriginalUrl,
-                                        Host = address.Host,
-                                        RedirectUrl = address.AbsoluteUri,
-                                        IsHttps = address.AbsoluteUri.StartsWith("https"),
-                                        ThreatType = url.ThreatType,
-                                        Type = UrlType.PUBLIC,
-                                    });
-                                }
-                            }
-                        }
-                        catch (Exception) 
-                        {
-                            var u = url.OriginalUrl;
-                            if(Regex.Match(u, Res.SearchStrs.regex_IP).Success)
-                            {
-                                if(u.StartsWith("127"))
-                                {
-                                    filterBag.Add(new Url
-                                    {
-                                        OriginalUrl = u,
-                                        Host = u,
-                                        IsHttps = false,
-                                        ThreatType = url.ThreatType,
-                                        Type = UrlType.OWN_DEVICE,
-                                    });
-                                }
-                                else if(u.StartsWith("192.168"))
-                                {
-                                    filterBag.Add(new Url
-                                    {
-                                        OriginalUrl = u,
-                                        Host = u,
-                                        IsHttps = false,
-                                        ThreatType = url.ThreatType,
-                                        Type = UrlType.LOCAL,
-                                    });
-                                }
+                                    OriginalUrl = url.OriginalUrl,
+                                    Host = address.Host,
+                                    RedirectUrl = address.AbsoluteUri,
+                                    IsHttps = address.AbsoluteUri.StartsWith("https"),
+                                    ThreatType = url.ThreatType,
+                                    Type = UrlType.PUBLIC,
+                                });
                             }
                         }
                     }
-                    return true;
-                });
-                tasks.Add(task);
-                task.Start();
-            }
-            foreach (var task in tasks) 
-            {
-                task.Wait();
-            }
+                    catch (Exception)
+                    {
+                        var u = url.OriginalUrl;
+                        if (Regex.Match(u, Res.SearchStrs.regex_IP).Success)
+                        {
+                            if (u.StartsWith("127"))
+                            {
+                                filterBag.Add(new Url
+                                {
+                                    OriginalUrl = u,
+                                    Host = u,
+                                    IsHttps = false,
+                                    ThreatType = url.ThreatType,
+                                    Type = UrlType.OWN_DEVICE,
+                                });
+                            }
+                            else if (u.StartsWith("192.168"))
+                            {
+                                filterBag.Add(new Url
+                                {
+                                    OriginalUrl = u,
+                                    Host = u,
+                                    IsHttps = false,
+                                    ThreatType = url.ThreatType,
+                                    Type = UrlType.LOCAL,
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+
             return [.. filterBag.OrderBy(u => u.OriginalUrl)];
         }
     }

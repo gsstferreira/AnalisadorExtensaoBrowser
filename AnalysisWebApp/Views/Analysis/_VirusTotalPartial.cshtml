@@ -1,37 +1,59 @@
 ﻿@using AnalysisWebApp.Enums
 @model VirusTotalViewModel
+
 <div>
     <br />
     <div>
-        <h5><b>Anti-Malwares testados:</b> @(Model.EngineResults.Count)</h5>
-        @{
-            var threatResults = Model.EngineResults.Where(r => r.EngineResult.IsThreat()).Count();
+        @if(Model is null)
+        {
+            <h5>Análise em andamento...</h5>
         }
-        <h5><b>Ameaças detectadas: </b> @(threatResults)</h5>
+        else
+        {
+            bool hasFailed = Model.IsComplete && Model.EngineResults.Count == 0;
+            var threatResults = Model.EngineResults.Where(r => r.EngineResult.IsThreat()).Count();
+
+            @if (!hasFailed && Model.IsComplete)
+            {
+                <h5><b>Anti-Malwares testados:</b> @(Model.EngineResults.Count)</h5>
+                <h5><b>Ameaças detectadas: </b> @(threatResults)</h5>
+            }
+            else if (!hasFailed && !Model.IsComplete)
+            {
+                <h5>Análise em andamento...</h5>
+            }
+            else
+            {
+                <h5>Não foi possível completar a análise de malware</h5>
+            }
+        }
     </div>
-    <br />
-    <div class="table-responsive">
-        <table class="table table-bordered border-primary table-striped">
-            <thead class="table-bordered border-primary" style="background-color:lightblue">
-                <tr style="align-content:center;text-align:center">
-                    <th scope="col"><h6><b>Motor Anti-Malware</b></h6></th>
-                    <th scope="col"><h6><b>Versão</b></h6></th>
-                    <th scope="col"><h6><b>Resultado</b></h6></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var result in Model.EngineResults)
-                {
-                    <tr>
-                        <td style="align-content:center">@(result.EngineName)</td>
-                        <td style="align-content:center;text-align:center">
-                            <div>@result.EngineVersion (@result.EngineVersionDate)</div>
-                        </td>
-                        <td style="align-content:center;text-align:center">@result.EngineResult.GetName()</td>
+    @if(Model is not null && Model.EngineResults.Count > 0)
+    {
+        <br />
+        <div class="table-responsive">
+            <table class="table table-bordered border-primary table-striped">
+                <thead class="table-bordered border-primary" style="background-color:lightblue">
+                    <tr style="align-content:center;text-align:center">
+                        <th scope="col"><h6><b>Motor Anti-Malware</b></h6></th>
+                        <th scope="col"><h6><b>Versão</b></h6></th>
+                        <th scope="col"><h6><b>Resultado</b></h6></th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var result in Model.EngineResults)
+                    {
+                        <tr>
+                            <td style="align-content:center">@(result.EngineName)</td>
+                            <td style="align-content:center;text-align:center">
+                                <div>@result.EngineVersion (@result.EngineVersionDate)</div>
+                            </td>
+                            <td style="align-content:center;text-align:center">@result.EngineResult.GetName()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
 

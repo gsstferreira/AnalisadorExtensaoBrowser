@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Common.Res {
+namespace Res {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace Common.Res {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class DBTables {
+    public class Lambda {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal DBTables() {
+        internal Lambda() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Common.Res {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Common.Res.DBTables", typeof(DBTables).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Res.Lambda", typeof(Lambda).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,25 +61,25 @@ namespace Common.Res {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ExtensionInfo.
+        ///   Looks up a localized string similar to ExtensionAnalysis_JS_Package.
         /// </summary>
-        public static string ExtensionInfo {
+        public static string JS_Package {
             get {
-                return ResourceManager.GetString("ExtensionInfo", resourceCulture);
+                return ResourceManager.GetString("JS_Package", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JSLibraries.
+        ///   Looks up a localized string similar to ExtensionAnalysis_JS_Query.
         /// </summary>
-        public static string JSFiles {
+        public static string JS_Query {
             get {
-                return ResourceManager.GetString("JSFiles", resourceCulture);
+                return ResourceManager.GetString("JS_Query", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Permissions.
+        ///   Looks up a localized string similar to ExtensionAnalysis_Permissions.
         /// </summary>
         public static string Permissions {
             get {
@@ -88,7 +88,16 @@ namespace Common.Res {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to URLs.
+        ///   Looks up a localized string similar to ExtensionAnalysis_ExtensionInfo.
+        /// </summary>
+        public static string ScrappingInfo {
+            get {
+                return ResourceManager.GetString("ScrappingInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ExtensionAnalysis_URL.
         /// </summary>
         public static string URLs {
             get {
@@ -97,7 +106,7 @@ namespace Common.Res {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VirusTotalChecks.
+        ///   Looks up a localized string similar to ExtensionAnalysis_VirusTotal.
         /// </summary>
         public static string VirusTotal {
             get {

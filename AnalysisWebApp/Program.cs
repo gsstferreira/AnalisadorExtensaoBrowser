@@ -21,7 +21,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=AnalysisList}/{action=Index}/{id?}"
+    pattern: "{controller=List}/{action=Index}/{id?}"
     );
 
 app.Run();

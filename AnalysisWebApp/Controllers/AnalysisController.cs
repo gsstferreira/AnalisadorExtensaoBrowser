@@ -1,14 +1,18 @@
 ﻿using AnalysisWebApp.Models;
 using Common.ClassesDB;
-using Common.Res;
 using Common.Handlers;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using Common.ClassesLambda;
+using Res;
 
 namespace AnalysisWebApp.Controllers
 {
     public class AnalysisController : Controller
     {
-        public IActionResult Index(string id)
+
+        [HttpGet("Analysis/Item/{id}")]
+        public IActionResult Item(string id)
         {
             var model = new AnalysisViewModel();
 
@@ -62,11 +66,32 @@ namespace AnalysisWebApp.Controllers
             {
                 if (ExtensionDownloadhandler.IsThisUrlExtension(extensionUrl))
                 {
-                    return View("yay" as object);
+                    var requestJson = JsonSerializer.Serialize(extensionUrl);
+
+                    var lambdaResponse = LambdaHandler.CallFunction(Lambda.ScrappingInfo, requestJson, false).Result;
+
+                    using (var reader = new StreamReader(lambdaResponse.Payload))
+                    {
+                        var response = reader.ReadToEnd();
+                        var payload = JsonSerializer.Deserialize<LambdaAnalysisPayload>(response);
+
+                        if(payload is not null)
+                        {
+                            var payloadJs = JsonSerializer.Serialize(new JsQueryLambdaPayload(payload, 0));
+
+                            LambdaHandler.CallFunction(Lambda.Permissions, response, true);
+                            LambdaHandler.CallFunction(Lambda.JS_Query, payloadJs, true);
+                            LambdaHandler.CallFunction(Lambda.URLs, response, true);
+                            LambdaHandler.CallFunction(Lambda.VirusTotal, response, true);
+
+                            return RedirectToAction("Item", new { id = payload.AnalysisId });
+                        }
+                    }
+                    return RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    return View("nay" as object);
+                    return View(extensionUrl as object);
                 }
             }
         }

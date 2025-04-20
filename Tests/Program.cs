@@ -1,37 +1,62 @@
-﻿using Common.ClassesLambda;
-using Common.Handlers;
-using System.Text.Json;
+﻿using Common.Handlers;
+using System.Diagnostics;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static void Main()
     {
-        string UrlTest = "https://chromewebstore.google.com/detail/adobe-acrobat-ferramentas/efaidnbmnnnibpcajpcglclefindmkaj?hl=pt-br";
-
+        Console.WriteLine(Environment.Version.ToString());
+        string UrlTest = "https://chromewebstore.google.com/detail/salvar-no-google-drive/gmbmikajjgmnabiglmofipeabaddhgne";
         Console.WriteLine("URL: " + UrlTest);
         var ext = ExtensionDownloadhandler.GetExtension(UrlTest, Common.Enums.ExtDownloadType.Full);
 
-        var requestbody = new LambdaRequestBody(ext);
-        var json = JsonSerializer.Serialize(requestbody);
+        ext.WriteZipToPath("C:/XExtensionDL");
 
-        //JavaScriptCheckHandler.CheckJSFiles(ext);
+        JavaScriptCheckHandler.CheckJSFiles(ext);
 
-        //var listJs = new List<ExtensionJSFile>();
+        //var list = ext.ContainedJSFiles.OrderByDescending(f => f.Lenght).ToList();
 
-        //foreach (var file in ext.ContainedJSFiles)
+        //var file = list[0];
+
+        //int iter = 50000;
+        //var dictionary = new Dictionary<int, int>();
+        //var watch = new Stopwatch();
+        //watch.Start();
+
+        //for(int i = 0; i < iter; i++)
         //{
-        //    listJs.Add(new ExtensionJSFile(file));
+        //    dictionary.Clear();
+        //    TestSimilarityHandler.GetProfileManualHash(file.Content, dictionary);
         //}
-        var respInfo = LambdaHandler.CallFunction("ExtensionAnalysis_ExtensionInfo", json);
-        Console.WriteLine("Web scrapping queued!");
-        var respPermission = LambdaHandler.CallFunction("ExtensionAnalysis_Permissions", json);
-        Console.WriteLine("Permissions parsing queued!");
-        var respURL = LambdaHandler.CallFunction("ExtensionAnalysis_URL", json);
-        Console.WriteLine("URLs checking queued!");
-        var respVirusTotal = LambdaHandler.CallFunction("ExtensionAnalysis_VirusTotal", json);
-        Console.WriteLine("Virus Total analysis queued!");
-        var respJS = LambdaHandler.CallFunction("ExtensionAnalysis_JSFiles", json);
-        Console.WriteLine(".js files checking queued!");
+        //watch.Stop();
 
+        //Console.WriteLine("Manual Hash: {0:0.00}s", watch.ElapsedMilliseconds/1000.0);
+        //dictionary = [];
+        //watch.Restart();
+        //for (int i = 0; i < iter; i++)
+        //{
+        //    dictionary.Clear();
+        //    TestSimilarityHandler.GetProfileHashCode(file.Content, dictionary);
+        //}
+        //watch.Stop();
+        //Console.WriteLine("Standard Hash: {0:0.00}s", watch.ElapsedMilliseconds / 1000.0);
+
+        //var dictionary2 = new Dictionary<ulong, int>();
+        //watch.Restart();
+        //for (int i = 0; i < iter; i++)
+        //{
+        //    dictionary2.Clear();
+        //    TestSimilarityHandler.GetProfileKnut(file.Content, dictionary2);
+        //}
+        //watch.Stop();
+        //Console.WriteLine("Knut: {0:0.00}s", watch.ElapsedMilliseconds / 1000.0);
+
+        //var requestBody = LambdaHandler.CallFunction(Lambda.ScrappingInfo, JsonSerializer.Serialize(UrlTest2), false).Result;
+
+        //using (var reader = new StreamReader(requestBody.Payload))
+        //{
+        //    var body = reader.ReadToEnd();
+        //    var query = LambdaHandler.CallFunction(Lambda.JS_Query, body, true);
+        //}
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Common.Classes;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace Common.Handlers
@@ -12,6 +11,10 @@ namespace Common.Handlers
     // toda vez que a similaridade é calculada. Como o arquivo .js da extensão é conhecido e não passa por alterações,
     // basta que o IDictionary seja criado uma única vez e mantido durante o ciclo de vida da análise.
 
+    // As funções "string.substring()" foram substituídas por "Span.Slice()" para aprimorar uso de memória e tempo de execução.
+    // Para acomodar o uso de Spans, trocou-se o dicionário <string,int> por <ulong,int>, com as chaves sendo o cálculo do
+    // hash (Knuth Hash Function) dos caracteres (chars) presentes em cada fatia do Span
+
     //Calcula a similaridade entre textos - https://en.wikipedia.org/wiki/Cosine_similarity
     public partial class SimilarityHandler
     {
@@ -23,10 +26,10 @@ namespace Common.Handlers
 
         public static void SetCosineProfile(JSFile jsFile)
         {
-            jsFile.Profile = GetProfile(jsFile.Content);
+            GetProfile(jsFile.Content, jsFile.Profile);
             jsFile.Norm = Norm(jsFile.Profile);
         }
-        public static double GetSimilarity(JSFile jsFile, string comparison)
+        public static double GetSimilarity(JSFile jsFile, string comparison, Dictionary<ulong, int> compDictionary)
         {
             if (jsFile.Lenght < DEFAULT_K || comparison.Length < DEFAULT_K)
             {
@@ -38,34 +41,31 @@ namespace Common.Handlers
             }
             else
             {
-                var profileComparison = GetProfile(comparison);
-                double similarity = DotProduct(jsFile.Profile, profileComparison) / (jsFile.Norm * Norm(profileComparison));
-                profileComparison.Clear();
+                GetProfile(comparison, compDictionary);
+                double similarity = DotProduct(jsFile.Profile, compDictionary) / (jsFile.Norm * Norm(compDictionary));
                 return similarity;
             }
         }
-        private static Dictionary<string, short> GetProfile(string s)
+        private static void GetProfile(string s, Dictionary<ulong, int> dictionary)
         {
-            var dictionary = new Dictionary<string, short>();
-            string text = SPACE_REG.Replace(s, " ");
+            var text = SPACE_REG.Replace(s, " ").AsSpan();
             for (int i = 0; i < text.Length - DEFAULT_K + 1; i++)
             {
-                string key = text.Substring(i, DEFAULT_K);
+                ulong key = CalculateKeyKnut(text.Slice(i, DEFAULT_K));
+
                 if (dictionary.TryGetValue(key, out var value))
                 {
-                    dictionary[key] = (short)(value + 1);
+                    dictionary[key] = value + 1;
                 }
                 else
                 {
                     dictionary[key] = 1;
                 }
             }
-
-            return dictionary;
         }
-        private static double Norm(IDictionary<string, short> profile)
+        private static double Norm(IDictionary<ulong, int> profile)
         {
-            int num = 0;
+            long num = 0;
 
             foreach (var item in profile)
             {
@@ -74,17 +74,18 @@ namespace Common.Handlers
 
             return Math.Sqrt(1.0 * num);
         }
-        private static double DotProduct(IDictionary<string, short> profile1, IDictionary<string, short> profile2)
+        private static long DotProduct(Dictionary<ulong, int> profile1, Dictionary<ulong, int> profile2)
         {
-            IDictionary<string, short> dictionary = profile2;
-            IDictionary<string, short> dictionary2 = profile1;
+            Dictionary<ulong, int> dictionary = profile2;
+            Dictionary<ulong, int> dictionary2 = profile1;
+
             if (profile1.Count < profile2.Count)
             {
                 dictionary = profile1;
                 dictionary2 = profile2;
             }
 
-            int num = 0;
+            long num = 0;
             foreach (var item in dictionary)
             {
                 if (dictionary2.TryGetValue(item.Key, out var value))
@@ -92,7 +93,31 @@ namespace Common.Handlers
                     num += item.Value * value;
                 }
             }
-            return 1.0 * num;
+            return num;
         }
+
+        private static ulong CalculateKeyKnut(ReadOnlySpan<char> span)
+        {
+            ulong hash = 3074457345618258799ul;
+
+            for (int i = 0; i < span.Length; i++)
+            {
+                hash += span[i];
+                hash *= 3074457345618258799ul;
+            }
+
+            return hash;
+        }
+        //private static ulong CalculateKey(ReadOnlySpan<char> span)
+        //{
+        //    HashCode hash = new HashCode();
+
+        //    for (int i = 0; i < span.Length; i++)
+        //    {
+        //        hash.Add(span[i]);
+        //    }
+
+        //    return (ulong) hash.ToHashCode();
+        //}
     }
 }

@@ -1,0 +1,22 @@
+
+{
+    "region" : "sa-east-1",
+    "configuration" : "Release",
+    "framework"     : "net8.0",
+    "self-contained" : false,
+    "application"    : "AnaliseExtensaoBrowser",
+    "environment"    : "AnaliseExtensaoBrowser-test",
+    "enable-xray"    : false,
+    "enhanced-health-type" : "basic",
+    "additional-options"   : "\"aws:autoscaling:launchconfiguration,SecurityGroups\"=\"sg-836e62e5\";\"aws:ec2:vpc,Subnets\"=\"subnet-a07366c7\"",
+    "solution-stack"       : "64bit Windows Server Core 2019 v2.19.0 running IIS 10.0",
+    "environment-type"     : "SingleInstance",
+    "cname"                : "analiseextensaobrowser-test",
+    "instance-type"        : "t1.micro",
+    "key-pair"             : "",
+    "instance-profile"     : "aws-elasticbeanstalk-AnaliseExtensaoBrowser-test",
+    "service-role"         : "aws-elasticbeanstalk-service-role",
+    "proxy-server"         : "nginx",
+    "app-path"             : "/",
+    "iis-website"          : "Default Web Site"
+}

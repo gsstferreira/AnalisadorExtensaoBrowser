@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Common.ClassesWeb.GoogleSafeBrowsing
 {
     //Enum contêm valores equivalentes ao enum "ThreatType" do Google Safe Browsing APIv4 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<GSBThreatType>))]
     public enum GSBThreatType
     {
         THREAT_TYPE_UNSPECIFIED = 0,

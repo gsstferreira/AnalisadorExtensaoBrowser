@@ -1,10 +1,10 @@
 ﻿using Common.Classes;
 using Common.ClassesJSON;
 using Common.ClassesWeb.VirusTotal;
+using Common.JsonSourceGenerators;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Common.Handlers
 {
@@ -15,44 +15,51 @@ namespace Common.Handlers
 
         public static void UploadFileToVT(BrowserExtension extension)
         {
-            string uploadUrl = Res.Params.VirusTotalFileURL;
-
-            if (extension.GetCrxSize() > crx_size_threshold) 
+            try
             {
-                var urlRequest = new HttpRequestMessage
+                string uploadUrl = Res.Params.VirusTotalFileURL;
+                string b64File = extension.GetCrxAsB64();
+                Console.WriteLine("{0:0.00}", 1.0 * b64File.Length / crx_size_threshold);
+
+                if (b64File.Length > crx_size_threshold)
                 {
-                    Method = HttpMethod.Get,
-                    RequestUri = new Uri(Res.Params.VirusTotalUrlRequest),
-                    Headers =
+                    var urlRequest = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Get,
+                        RequestUri = new Uri(Res.Params.VirusTotalUrlRequest),
+                        Headers =
                     {
                         {"accept", "application/json"},
                         {"x-apikey", Res.Keys.virus_total_api_key},
                     },
-                };
+                    };
 
-                var urlJson = _httpCLient.Send(urlRequest).Content.ReadAsStringAsync().Result;
-                uploadUrl = (JsonSerializer.Deserialize<VTUploadUrlJson>(urlJson) ?? new VTUploadUrlJson()).UploadUrl;
-            }
+                    var json = _httpCLient.Send(urlRequest).Content.ReadAsStringAsync().Result;
+                    uploadUrl = (JsonSerializer.Deserialize(json, VTUploadSG.Default.VTUploadUrlJson) ?? new VTUploadUrlJson()).UploadUrl;
+                }
 
-            string fileName = "ext_compressed.zip";
-            var sBuilder = new StringBuilder();
-            sBuilder.Append("data:application/x-zip-compressed;name=");
-            sBuilder.Append(fileName);
-            sBuilder.Append(";base64,");
-            sBuilder.Append(extension.GetCrxAsB64());
+                string fileName = "compressed.zip";
+                var sBuilder = new StringBuilder();
+                sBuilder.Append("data:application/x-zip-compressed;name=");
+                sBuilder.Append(fileName);
+                sBuilder.Append(";base64,");
 
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri(uploadUrl),
-                Headers =
+                sBuilder.Append(b64File);
+
+                var multipartBody = sBuilder.ToString();
+
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(uploadUrl),
+                    Headers =
                 {
                     {"accept", "application/json"},
                     {"x-apikey", Res.Keys.virus_total_api_key},
                 },
-                Content = new MultipartFormDataContent
+                    Content = new MultipartFormDataContent()
                 {
-                    new StringContent(sBuilder.ToString())
+                    new StringContent(multipartBody)
                     {
                         Headers =
                         {
@@ -65,13 +72,23 @@ namespace Common.Handlers
                         }
                     }
                 }
-            };
+                };
 
-            var response = _httpCLient.Send(request).Content.ReadAsStringAsync().Result;
-            var content = JsonSerializer.Deserialize<VTQueueJson>(response) ?? new VTQueueJson();
+                var response = _httpCLient.Send(request).Content;
+                var content = response.ReadAsStringAsync().Result;
+                Console.WriteLine(content);
 
-            extension.VirusTotalAnalysisUrl = content.Information.AnalysisLinks.AnalysisUrl;
+                var queue = JsonSerializer.Deserialize(content, VTQueueSG.Default.VTQueueJson) ?? new VTQueueJson();
+                extension.VirusTotalAnalysisUrl = queue.Information.AnalysisLinks.AnalysisUrl;
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                extension.VirusTotalAnalysisUrl = string.Empty;
+            }
         }
+
         public static VTResponse CheckVTAnalysis(string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -93,9 +110,9 @@ namespace Common.Handlers
                 };
 
                 var response = _httpCLient.Send(request).Content.ReadAsStringAsync().Result;
-                var content = JsonSerializer.Deserialize<VTResultJson>(response) ?? new VTResultJson();
+                var content = JsonSerializer.Deserialize(response, VTResultSG.Default.VTResultJson) ?? new VTResultJson();
 
-                var vtResult = new VTResponse 
+                var vtResult = new VTResponse
                 {
                     Date = DateTime.UnixEpoch.AddSeconds(content.ResultData.Attributes.DateCompletion),
                     Status = content.ResultData.Attributes.Status,
@@ -103,22 +120,27 @@ namespace Common.Handlers
                     ScanResults = []
                 };
 
-                foreach(var engineResult in content.ResultData.Attributes.Results)
+                foreach (var engineResult in content.ResultData.Attributes.Results)
                 {
                     var value = engineResult.Value;
+                    DateTime date;
+                    if (long.TryParse(value.EngineUpdate, out long parsed))
+                    {
+                        int year = (int)parsed / 10000;
+                        int month = (int)(parsed % 10000) / 100;
+                        int day = (int)parsed % 100;
 
-                    var rawDate = long.TryParse(value.EngineUpdate, out long parsed);
-                    int year = (int)parsed / 10000;
-                    int month = (int)(parsed % 10000) / 100;
-                    int day = (int)parsed % 100;
+                        date = new DateTime(year, month, day);
+                    }
+                    else date = DateTime.MinValue;
 
-                    var result = new AntivirusScanResult 
-                    { 
+                    var result = new AntivirusScanResult
+                    {
                         Method = value.Method,
                         EngineVersion = value.EngineVersion,
                         EngineName = value.EngineName,
                         Category = value.Category,
-                        EngineUpdate = new DateTime(year, month, day),
+                        EngineUpdate = date,
                     };
 
                     vtResult.ScanResults.Add(result);

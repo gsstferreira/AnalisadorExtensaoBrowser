@@ -13,7 +13,7 @@ namespace Common.ClassesDB
             Permissions = [];
         }
 
-        public ExtensionPermissionsResult(BrowserExtension extension) : base(extension.Id, extension.Version)
+        public ExtensionPermissionsResult(BrowserExtension extension, string analysisId) : base(analysisId)
         {
             Permissions = [];
             Permissions.AddRange(extension.Permissions);

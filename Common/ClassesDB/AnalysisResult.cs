@@ -9,22 +9,16 @@ namespace Common.ClassesDB
     public abstract class AnalysisResult
     {
         public string AnalysisID {get; set;}
-        public string ExtensionID { get; set; }
-        public string ExtensionVersion { get; set; }
-        public DateTimeOffset DateCompletion { get; set; }
+        public DateTime DateCompletion { get; set; }
         public AnalysisResult() 
         {
             AnalysisID = string.Empty;
-            ExtensionID = string.Empty;
-            ExtensionVersion = string.Empty;
-            DateCompletion = DateTimeOffset.MinValue;
+            DateCompletion = DateTime.MinValue;
         }
-        public AnalysisResult(string id, string version) {
-            ExtensionID = id;
-            ExtensionVersion = version;
-            DateCompletion = DateTimeOffset.Now;
+        public AnalysisResult(string analysisId) {
+            DateCompletion = DateTime.Now;
 
-            AnalysisID = Convert.ToBase64String(Encoding.UTF8.GetBytes(ExtensionID+ExtensionVersion));
+            AnalysisID = analysisId;
         }
     }
 }

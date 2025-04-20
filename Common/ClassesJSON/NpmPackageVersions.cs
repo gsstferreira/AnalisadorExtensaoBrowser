@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using ThirdParty.Json.LitJson;
+﻿using System.Text.Json.Serialization;
 
 namespace Common.ClassesJSON
 {
     public class NpmPackageJson
     {
         [JsonPropertyName("time")]
-        public SortedList<string,DateTime> DateVersions { get; set; }
+        public Dictionary<string,DateTime> DateVersions { get; set; }
         [JsonPropertyName("versions")]
         public SortedList<string, PackageVersionJson> Versions { get; set; }
         [JsonPropertyName("dist-tags")]
@@ -54,14 +48,11 @@ namespace Common.ClassesJSON
 
     public class VersionDistribution
     {
-        [JsonPropertyName("shasum")]
-        public string Shasum { get; set; }
         [JsonPropertyName("tarball")]
         public string TarballUrl { get; set; }
 
         public VersionDistribution() 
         {
-            Shasum = string.Empty;
             TarballUrl = string.Empty;
         }
     }

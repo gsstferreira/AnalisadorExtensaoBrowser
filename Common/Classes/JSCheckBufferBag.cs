@@ -1,6 +1,5 @@
-﻿using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
-using System;
+﻿using ICSharpCode.SharpZipLib.Tar;
+using System.IO.Compression;
 using System.Text;
 
 namespace Common.Classes
@@ -9,60 +8,58 @@ namespace Common.Classes
     {
         public MemoryStream DownloadStream {  get; set; }
         public MemoryStream EntryStream { get; set; }
-        public StreamReader EntryReader { get; set; }
-        private TarInputStream TarStream { get; set; }
-        private TarInputStream TarStreamGzip {  get; set; }
-        private GZipInputStream GzipDownloadStream { get; set; }
+        public Dictionary<ulong, int> ContentProfile { get; set; }
+        private StreamReader Reader { get; set; }
+        private ExtendedTarStream TarStream { get; set; }
         private byte[] ByteBuffer { get; set; }
-
         public JSCheckBufferBag() 
         {
             DownloadStream = new MemoryStream();
             EntryStream = new MemoryStream();
-            EntryReader = new StreamReader(EntryStream);
-            GzipDownloadStream = new GZipInputStream(DownloadStream);
-
-            TarStream = new TarInputStream(DownloadStream, Encoding.Default);
-            TarStreamGzip = new TarInputStream(GzipDownloadStream, Encoding.Default);
             ByteBuffer = new byte[2];
+
+            Reader = new StreamReader(EntryStream);
+
+            TarStream = new ExtendedTarStream(DownloadStream);
+            ContentProfile = [];
         }
 
-        public TarInputStream GetTarStream()
+        public TarInputStream SetTarReading()
         {
             DownloadStream.Seek(0, SeekOrigin.Begin);
             DownloadStream.Read(ByteBuffer, 0, 2);
             DownloadStream.Seek(0, SeekOrigin.Begin);
 
-            if(ByteBuffer[0] == 0x1F && ByteBuffer[1] == 0x8B)
+            if (ByteBuffer[0] == 0x1F && ByteBuffer[1] == 0x8B)
             {
-                return TarStreamGzip;
+                return new TarInputStream(new GZipStream(DownloadStream,CompressionMode.Decompress),Encoding.Default);
             }
             else
             {
+                TarStream.Restart();
                 return TarStream;
             }
-        }
-        public string GetEntryContents(TarInputStream tarStream)
-        {
-            EntryStream.SetLength(0);
-            tarStream.CopyEntryContents(EntryStream);
-            EntryStream.Seek(0, SeekOrigin.Begin);
-            return EntryReader.ReadToEnd();
         }
         public void Clear()
         {
             DownloadStream.SetLength(0);
             EntryStream.SetLength(0);
+            ContentProfile.Clear();
+        }
+
+        public string GetEntry(TarInputStream stream)
+        {
+            EntryStream.SetLength(0);
+            stream.CopyEntryContents(EntryStream);
+            EntryStream.Seek(0, SeekOrigin.Begin);
+
+            return Reader.ReadToEnd();
         }
 
         public void Close()
         {
-            DownloadStream.Close();
-            EntryStream.Close();
-            EntryReader.Close();
-            GzipDownloadStream.Close();
-            TarStream.Close();
-            TarStreamGzip.Close();
+            DownloadStream.Dispose();
+            EntryStream.Dispose();
         }
     }
 }
