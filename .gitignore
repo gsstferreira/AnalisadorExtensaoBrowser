@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /Common/Res/keys.Designer.cs
 /Common/Res/Keys.resx
+/Resources/Keys.resx
+/Resources/keys.Designer.cs
