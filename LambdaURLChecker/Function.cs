@@ -20,7 +20,7 @@ public class Function
     /// <returns></returns>
     public static string FunctionHandler(LambdaAnalysisPayload payload)
     {
-        var extension = ExtensionDownloadhandler.GetExtension(payload.ExtensionPageUrl,Common.Enums.ExtDownloadType.OnlyCrxFile);
+        var extension = ExtensionDownloadhandler.GetExtension(payload.ExtensionPageUrl,Common.Enums.DownloadType.OnlyCrxFile);
 
         UrlCheckHandler.CheckURLs(extension);
 

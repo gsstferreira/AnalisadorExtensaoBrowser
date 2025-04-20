@@ -21,7 +21,7 @@ public class Function
 
     public static string FunctionHandler(JsQueryLambdaPayload input)
     {
-        var extension = ExtensionDownloadhandler.GetExtension(input.ExtensionPageUrl, ExtDownloadType.OnlyCrxFile);
+        var extension = ExtensionDownloadhandler.GetExtension(input.ExtensionPageUrl, DownloadType.OnlyCrxFile);
 
         var jsFiles = JavaScriptCheckHandlerNew.GetJSFiles(extension);
 

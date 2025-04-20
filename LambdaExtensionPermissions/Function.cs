@@ -21,7 +21,7 @@ public class Function
     public static string FunctionHandler(LambdaAnalysisPayload payload)
     {
         {
-            var extension = ExtensionDownloadhandler.GetExtension(payload.ExtensionPageUrl, Common.Enums.ExtDownloadType.OnlyCrxFile);
+            var extension = ExtensionDownloadhandler.GetExtension(payload.ExtensionPageUrl, Common.Enums.DownloadType.OnlyCrxFile);
 
             PermissionCheckHandler.ParsePermissions(extension);
 

@@ -42,7 +42,7 @@ namespace Common.Handlers
 
             return false;
         }
-        public static BrowserExtension GetExtension(string url, ExtDownloadType downloadType)
+        public static BrowserExtension GetExtension(string url, DownloadType downloadType)
         {
             var urlParts = url.Replace(Res.Params.ViewURL, string.Empty).Trim().Split(['/', '?']);
             var simpleName = urlParts[0];
@@ -57,10 +57,10 @@ namespace Common.Handlers
 
             switch (downloadType)
             {
-                case ExtDownloadType.OnlyCrxFile:
+                case DownloadType.OnlyCrxFile:
                     DownloadCrx(extension);
                     break;
-                case ExtDownloadType.OnlyScrape:
+                case DownloadType.OnlyScrape:
                     ScrapeExtensionInfo(extension);
                     break;
                 default:

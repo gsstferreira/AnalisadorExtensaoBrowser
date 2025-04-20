@@ -20,7 +20,7 @@ public class Function
 {
     public static LambdaAnalysisPayload FunctionHandler(string extensionUrl)
     {
-        var extension = ExtensionDownloadhandler.GetExtension(extensionUrl, Common.Enums.ExtDownloadType.OnlyScrape);
+        var extension = ExtensionDownloadhandler.GetExtension(extensionUrl, Common.Enums.DownloadType.OnlyScrape);
 
         var analysisId = Convert.ToBase64String(Encoding.UTF8.GetBytes(extension.Id + extension.Version));
 

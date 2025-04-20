@@ -20,7 +20,7 @@ public class Function
     /// <returns></returns>
     public string FunctionHandler(LambdaAnalysisPayload payload, ILambdaContext context)
     {
-        var extension = ExtensionDownloadhandler.GetExtension(payload.ExtensionPageUrl, Common.Enums.ExtDownloadType.OnlyCrxFile);
+        var extension = ExtensionDownloadhandler.GetExtension(payload.ExtensionPageUrl, Common.Enums.DownloadType.OnlyCrxFile);
 
         VirusTotalHandler.UploadFileToVT(extension);
 

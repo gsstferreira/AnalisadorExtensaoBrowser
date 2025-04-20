@@ -8,7 +8,7 @@ internal class Program
         Console.WriteLine(Environment.Version.ToString());
         string UrlTest = "https://chromewebstore.google.com/detail/salvar-no-google-drive/gmbmikajjgmnabiglmofipeabaddhgne";
         Console.WriteLine("URL: " + UrlTest);
-        var ext = ExtensionDownloadhandler.GetExtension(UrlTest, Common.Enums.ExtDownloadType.Full);
+        var ext = ExtensionDownloadhandler.GetExtension(UrlTest, Common.Enums.DownloadType.Full);
 
         ext.WriteZipToPath("C:/XExtensionDL");
 
