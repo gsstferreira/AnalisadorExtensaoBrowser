@@ -1,5 +1,6 @@
 ﻿using AnalysisWebApp.Enums;
 using Common.ClassesWeb.VirusTotal;
+using Res;
 
 namespace AnalysisWebApp.Models
 {
@@ -22,7 +23,7 @@ namespace AnalysisWebApp.Models
         {
             EngineName = result.EngineName;
             EngineVersion = result.EngineVersion;
-            EngineVersionDate = result.EngineUpdate.ToString(Constants.DateStringFormat);
+            EngineVersionDate = result.EngineUpdate.ToString(Params.DateStringFormat);
 
             EngineResult = result.Category switch
             {

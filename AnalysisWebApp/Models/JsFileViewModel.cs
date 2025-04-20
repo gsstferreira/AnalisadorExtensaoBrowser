@@ -43,9 +43,9 @@ namespace AnalysisWebApp.Models
             LatestVersionStable = file.LatestVersionStable;
             LatestVersionDevelopment = file.LatestVersionDevelopment;
 
-            MatchedVersionDate = file.MatchedVersionDate.ToString(Constants.DateStringFormat);
-            LatestUpdateStable = file.LatestUpdateStable.ToString(Constants.DateStringFormat);
-            LatestUpdateDevelopment = file.LatestUpdateDevelopment.ToString(Constants.DateStringFormat);
+            MatchedVersionDate = file.MatchedVersionDate.ToString(Params.DateStringFormat);
+            LatestUpdateStable = file.LatestUpdateStable.ToString(Params.DateStringFormat);
+            LatestUpdateDevelopment = file.LatestUpdateDevelopment.ToString(Params.DateStringFormat);
 
             Similarity = string.Format("{0:0.00}%", file.Similarity*100);
 

@@ -1,4 +1,5 @@
 ﻿using Common.ClassesWeb.VirusTotal;
+using Res;
 
 namespace AnalysisWebApp.Models
 {
@@ -17,7 +18,7 @@ namespace AnalysisWebApp.Models
         public VirusTotalViewModel(VTResponse response)
         {
             IsComplete = response.Status.Equals("completed");
-            DateCompletion = response.Date.ToString(Constants.DateStringFormat);
+            DateCompletion = response.Date.ToString(Params.DateStringFormat);
             EngineResults = [];
 
             foreach(var scan in response.ScanResults)

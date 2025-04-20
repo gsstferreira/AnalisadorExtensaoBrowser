@@ -3,6 +3,7 @@ using Common.ClassesWeb.GoogleSafeBrowsing;
 using Common.ClassesWeb.VirusTotal;
 using Common.Enums;
 using Common.Handlers;
+using Res;
 
 namespace AnalysisWebApp.Models
 {
@@ -68,7 +69,7 @@ namespace AnalysisWebApp.Models
             if (result is not null)
             {
                 AnalysisId = result.AnalysisID;
-                AnalysisDateTime = result.DateCompletion.ToString(Constants.DateStringFormat);
+                AnalysisDateTime = result.DateCompletion.ToString(Params.DateStringFormat);
 
                 ExtensionName = result.Name;
                 ExtensionProvider = result.Provider;
@@ -77,7 +78,7 @@ namespace AnalysisWebApp.Models
                 ExtensionPageUrl = result.PageURL;
                 ExtensionsIconUrl = result.IconUrl;
 
-                ExtensionLastUpdate = result.LastUpdated.ToString(Constants.DateStringFormat);
+                ExtensionLastUpdate = result.LastUpdated.ToString(Params.DateStringFormat);
                 ExtensionRating = string.Format("{0:0.0}", result.Rating / 10);
                 ExtensionReviews = NumberToString(result.NumReviews);
                 ExtensionDownloads = NumberToString(result.NumDownloads);

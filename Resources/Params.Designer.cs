@@ -79,6 +79,15 @@ namespace Res {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to dd/MM/yyyy.
+        /// </summary>
+        public static string DateStringFormat {
+            get {
+                return ResourceManager.GetString("DateStringFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://clients2.google.com/service/update2/crx?response=redirect&amp;prodversion=[PRODVER]&amp;acceptformat=[FORMAT]&amp;x=id%3D[ID]%26uc.
         /// </summary>
         public static string DownloadURL {

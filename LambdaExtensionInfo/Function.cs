@@ -2,13 +2,8 @@ using Amazon.Lambda.Core;
 using Common.ClassesDB;
 using Common.ClassesLambda;
 using Common.Handlers;
-using Common.JsonSourceGenerators;
 using Res;
-using System.Buffers.Text;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Threading.Tasks;
 using System.Web;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.

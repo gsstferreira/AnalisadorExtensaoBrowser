@@ -123,6 +123,9 @@
   <data name="ChromeProdVersion" xml:space="preserve">
     <value>126.0.6478.260</value>
   </data>
+  <data name="DateStringFormat" xml:space="preserve">
+    <value>dd/MM/yyyy</value>
+  </data>
   <data name="DownloadURL" xml:space="preserve">
     <value>https://clients2.google.com/service/update2/crx?response=redirect&amp;prodversion=[PRODVER]&amp;acceptformat=[FORMAT]&amp;x=id%3D[ID]%26uc</value>
   </data>
