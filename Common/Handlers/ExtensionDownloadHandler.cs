@@ -100,7 +100,7 @@ namespace Common.Handlers
             crxStream.CopyTo(zipStream);
             Console.WriteLine("CrxStream Size: {0:0.00}KB; ZipStreamSize {1:0.00}KB", crxStream.Length / 1024.0, zipStream.Length / 1024.0);
                 
-            extension.GetCrxFile(crxStream, zipStream);
+            extension.SetCrxFile(crxStream, zipStream);
         }
         private static void ScrapeExtensionInfo(BrowserExtension extension)
         {

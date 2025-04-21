@@ -5,15 +5,25 @@ internal class Program
 {
     private static void Main()
     {
-        Console.WriteLine(Environment.Version.ToString());
-        string UrlTest = "https://chromewebstore.google.com/detail/salvar-no-google-drive/gmbmikajjgmnabiglmofipeabaddhgne";
-        Console.WriteLine("URL: " + UrlTest);
-        var ext = ExtensionDownloadhandler.GetExtension(UrlTest, Common.Enums.DownloadType.Full);
+        //Console.WriteLine(Environment.Version.ToString());
+        //string UrlTest = "https://chromewebstore.google.com/detail/ultimate-car-driving-game/aomkpefnllinimbhddlfhelelngakbbn";
+        //Console.WriteLine("URL: " + UrlTest);
+        //var ext = ExtensionDownloadhandler.GetExtension(UrlTest, Common.Enums.DownloadType.Full);
 
-        ext.WriteZipToPath("C:/XExtensionDL");
+        //ext.WriteZipToPath("C:/XExtensionDL");
 
-        JavaScriptCheckHandler.CheckJSFiles(ext);
+        ////var fileStream = File.OpenRead("C:/XExtensionDL/sidebar-chatgpt-favoritos.zip");
 
+        ////var memStream = new MemoryStream();
+
+        ////fileStream.CopyTo(memStream);
+
+        ////ext.SetCrxFile(new MemoryStream(), memStream);
+
+        //VirusTotalHandler.UploadFileToVTRestSharp(ext);
+
+        //var response = VirusTotalHandler.CheckVTAnalysis("https://www.virustotal.com/api/v3/analyses/MjZiM2I0OWI3Nzk4MGExNjdiNTkyY2EwNTcyMzA3ZWU6MTc0NTE5OTUyNw==");
+        //Console.WriteLine(response);
         //var list = ext.ContainedJSFiles.OrderByDescending(f => f.Lenght).ToList();
 
         //var file = list[0];

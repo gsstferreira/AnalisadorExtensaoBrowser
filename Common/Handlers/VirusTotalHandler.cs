@@ -2,6 +2,8 @@
 using Common.ClassesJSON;
 using Common.ClassesWeb.VirusTotal;
 using Common.JsonSourceGenerators;
+using Res;
+using RestSharp;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -13,74 +15,131 @@ namespace Common.Handlers
         private static readonly long crx_size_threshold = 32 * 1024 * 1024;
         private static readonly HttpClient _httpCLient = new();
 
-        public static void UploadFileToVT(BrowserExtension extension)
+        // Por algum motivo, a API do VirusTotal não consegue decodificar corretamente o arquivo enviado através de HttpClient
+        // Para as chamadas de upload de arquivos, trocou-se para a biblioteca Open-Source RestSharp
+        //public static void UploadFileToVT(BrowserExtension extension)
+        //{
+        //    try
+        //    {
+        //        string uploadUrl = Res.Params.VirusTotalFileURL;
+        //        string b64File = extension.GetCrxAsB64();
+        //        Console.WriteLine("{0:0.00}", 1.0 * b64File.Length / crx_size_threshold);
+
+        //        if (b64File.Length > crx_size_threshold)
+        //        {
+        //            var urlRequest = new HttpRequestMessage
+        //            {
+        //                Method = HttpMethod.Get,
+        //                RequestUri = new Uri(Res.Params.VirusTotalUrlRequest),
+        //                Headers =
+        //            {
+        //                {"accept", "application/json"},
+        //                {"x-apikey", Res.Keys.virus_total_api_key},
+        //            },
+        //            };
+
+        //            var json = _httpCLient.Send(urlRequest).Content.ReadAsStringAsync().Result;
+        //            uploadUrl = (JsonSerializer.Deserialize(json, VTUploadSG.Default.VTUploadUrlJson) ?? new VTUploadUrlJson()).UploadUrl;
+        //        }
+
+        //        string fileName = "compressed.zip";
+        //        var sBuilder = new StringBuilder();
+        //        sBuilder.Append("data:application/x-zip-compressed;name=");
+        //        sBuilder.Append(fileName);
+        //        sBuilder.Append(";base64,");
+
+        //        sBuilder.Append(b64File);
+
+        //        var multipartBody = sBuilder.ToString();
+
+        //        var request = new HttpRequestMessage
+        //        {
+        //            Method = HttpMethod.Post,
+        //            RequestUri = new Uri(uploadUrl),
+        //            Headers =
+        //        {
+        //            {"accept", "application/json"},
+        //            {"x-apikey", Res.Keys.virus_total_api_key},
+        //        },
+        //            Content = new MultipartFormDataContent()
+        //        {
+        //            new StringContent(multipartBody)
+        //            {
+        //                Headers =
+        //                {
+        //                    ContentType = new MediaTypeHeaderValue("application/x-zip-compressed"),
+        //                    ContentDisposition = new ContentDispositionHeaderValue("form-data")
+        //                    {
+        //                        Name = "file",
+        //                        FileName = fileName,
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        };
+
+        //        var response = _httpCLient.Send(request).Content;
+        //        var content = response.ReadAsStringAsync().Result;
+        //        Console.WriteLine(content);
+
+        //        var queue = JsonSerializer.Deserialize(content, VTQueueSG.Default.VTQueueJson) ?? new VTQueueJson();
+        //        extension.VirusTotalAnalysisUrl = queue.Information.AnalysisLinks.AnalysisUrl;
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString());
+        //        extension.VirusTotalAnalysisUrl = string.Empty;
+        //    }
+        //}
+        
+        //Versão RestSharp do upload de arquivos para a API do VirusTotal
+        public static void UploadFileToVTRestSharp(BrowserExtension extension)
         {
             try
             {
-                string uploadUrl = Res.Params.VirusTotalFileURL;
-                string b64File = extension.GetCrxAsB64();
-                Console.WriteLine("{0:0.00}", 1.0 * b64File.Length / crx_size_threshold);
+                string uploadUrl = Params.VirusTotalFileURL;
 
-                if (b64File.Length > crx_size_threshold)
+                if (extension.GetZipSize() > crx_size_threshold)
                 {
+                    Console.WriteLine("Arquivo muito grande para chamada padrão, requisitando url de upload...");
                     var urlRequest = new HttpRequestMessage
                     {
                         Method = HttpMethod.Get,
-                        RequestUri = new Uri(Res.Params.VirusTotalUrlRequest),
+                        RequestUri = new Uri(Params.VirusTotalUrlRequest),
                         Headers =
                     {
                         {"accept", "application/json"},
-                        {"x-apikey", Res.Keys.virus_total_api_key},
+                        {"x-apikey", Keys.virus_total_api_key},
                     },
                     };
 
                     var json = _httpCLient.Send(urlRequest).Content.ReadAsStringAsync().Result;
                     uploadUrl = (JsonSerializer.Deserialize(json, VTUploadSG.Default.VTUploadUrlJson) ?? new VTUploadUrlJson()).UploadUrl;
+                    Console.WriteLine("Url de upload obtida.");
                 }
 
-                string fileName = "compressed.zip";
-                var sBuilder = new StringBuilder();
-                sBuilder.Append("data:application/x-zip-compressed;name=");
-                sBuilder.Append(fileName);
-                sBuilder.Append(";base64,");
+                var options = new RestClientOptions(uploadUrl);
+                var client = new RestClient(options);
 
-                sBuilder.Append(b64File);
-
-                var multipartBody = sBuilder.ToString();
-
-                var request = new HttpRequestMessage
+                var request = new RestRequest(string.Empty)
                 {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri(uploadUrl),
-                    Headers =
-                {
-                    {"accept", "application/json"},
-                    {"x-apikey", Res.Keys.virus_total_api_key},
-                },
-                    Content = new MultipartFormDataContent()
-                {
-                    new StringContent(multipartBody)
-                    {
-                        Headers =
-                        {
-                            ContentType = new MediaTypeHeaderValue("application/x-zip-compressed"),
-                            ContentDisposition = new ContentDispositionHeaderValue("form-data")
-                            {
-                                Name = "file",
-                                FileName = fileName,
-                            }
-                        }
-                    }
-                }
+                    AlwaysMultipartFormData = true,
                 };
+                request.AddHeader("accept", "application/json");
+                request.AddHeader("x-apikey", Keys.virus_total_api_key);
+                request.FormBoundary = "---011000010111000001101001";
+                request.AddFile("file", extension.GetZipAsBuffer(), "compressed.zip");
 
-                var response = _httpCLient.Send(request).Content;
-                var content = response.ReadAsStringAsync().Result;
+                Console.WriteLine("Enviando arquivo para análise do VirusTotal...");
+                var response = client.Post(request);
+
+                var content = response.Content ?? string.Empty;
+                Console.WriteLine("Resposta recebida:");
                 Console.WriteLine(content);
 
                 var queue = JsonSerializer.Deserialize(content, VTQueueSG.Default.VTQueueJson) ?? new VTQueueJson();
                 extension.VirusTotalAnalysisUrl = queue.Information.AnalysisLinks.AnalysisUrl;
-
             }
             catch (Exception ex)
             {
@@ -88,7 +147,6 @@ namespace Common.Handlers
                 extension.VirusTotalAnalysisUrl = string.Empty;
             }
         }
-
         public static VTResponse CheckVTAnalysis(string url)
         {
             if (string.IsNullOrEmpty(url))

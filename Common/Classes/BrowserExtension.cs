@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using Common.ClassesWeb.VirusTotal;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Common.Classes
 {
@@ -71,7 +72,7 @@ namespace Common.Classes
             ExtensionContent = new ZipArchive(new MemoryStream(0), ZipArchiveMode.Create);
         }
 
-        public void GetCrxFile(MemoryStream streamCrx, MemoryStream streamZip)
+        public void SetCrxFile(MemoryStream streamCrx, MemoryStream streamZip)
         {
             CrxFileStream = streamCrx;
             ZipFileStream = streamZip;
@@ -96,9 +97,25 @@ namespace Common.Classes
             }
         }
 
+        public byte[] GetZipAsBuffer()
+        {
+            if (ZipFileStream is null) return [];
+            else
+            {
+                var result = ZipFileStream.ToArray();
+                ZipFileStream.Seek(0, SeekOrigin.Begin);
+                return result;
+            }
+        }
+
         public long GetCrxSize()
         {
             return CrxFileStream is not null ? CrxFileStream.Length : 0;
+        }
+
+        public long GetZipSize()
+        {
+            return ZipFileStream is not null ? ZipFileStream.Length : 0;
         }
 
         public void WriteZipToPath(string path)
