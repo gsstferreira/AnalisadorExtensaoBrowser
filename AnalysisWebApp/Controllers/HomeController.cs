@@ -1,7 +1,5 @@
 using AnalysisWebApp.Models;
-using Common.Handlers;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace AnalysisWebApp.Controllers
 {
@@ -16,7 +14,16 @@ namespace AnalysisWebApp.Controllers
 
         public IActionResult Index()
         {
-            return RedirectToAction("List","AnalysisList");
+            return RedirectToAction("Index","List");
+        }
+        public IActionResult Error()
+        {
+            if(TempData["ThrownException"] is string exceptionJson)
+            {
+                return View(ExceptionViewModel.FromJson(exceptionJson));
+            }
+
+            return View(new ExceptionViewModel());
         }
     }
 }

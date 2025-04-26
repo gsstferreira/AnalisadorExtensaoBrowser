@@ -1,4 +1,3 @@
-using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.Core;
 using Common.Classes;
 using Common.ClassesDB;
@@ -17,24 +16,24 @@ namespace LambdaJSCheckerQuery;
 public class Function
 {
     private const int _sleep_npm_queries = 1000;
-    private const int _files_before_new_call = 50;
+    private const int _files_before_new_call = 100;
 
     public static string FunctionHandler(JsQueryLambdaPayload input)
     {
         var extension = ExtensionDownloadhandler.GetExtension(input.ExtensionPageUrl, DownloadType.OnlyCrxFile);
 
         var jsFiles = JavaScriptCheckHandlerNew.GetJSFiles(extension);
-
+        var count = jsFiles.Count;
+        Console.WriteLine("{0} arquivos JavaScript encontrados na extensão.", count);
         if (input.StartAt == 0)
         {
-            var initialCount = new ExtensionJSResult(jsFiles, input.AnalysisId);
-
-            DynamoDBHandler.PutEntry(DBTables.JSFiles, initialCount);
+            DynamoDBHandler.PutEntry(DBTables.JSFiles, new ExtJSResult(jsFiles, input.AnalysisId));
         }
         else
         {
-            jsFiles.RemoveRange(0, input.StartAt);
+            jsFiles = [.. jsFiles.Skip(input.StartAt)];
         }
+        int analyzed = 0;
 
         if (jsFiles.Count > _files_before_new_call)
         {
@@ -43,20 +42,26 @@ public class Function
 
             var newPayload = new JsQueryLambdaPayload(input.ExtensionPageUrl, input.AnalysisId, newStartIndex);
             var json = JsonSerializer.Serialize(newPayload, JsQueryLambdaSG.Default.JsQueryLambdaPayload);
+            Console.WriteLine("Analisando arquivos [{0}] a [{1}] de [{2}]", input.StartAt, newStartIndex, count);
             foreach (var jsFile in jsFilesSection)
             {
                 CheckPackages(jsFile, input.AnalysisId);
+                analyzed++;
             }
-            Console.WriteLine("{0} files remaining, invoking function again to avoid timeout", jsFiles.Count - _files_before_new_call);
-            var newLambda = LambdaHandler.CallFunction(Lambda.JS_Query, json, true);
-            newLambda.Wait();
+            Console.WriteLine("{0} arquivos enviados para análise", analyzed);
+            Console.WriteLine("{0} arquivos restantes, invocando nova execução.", jsFiles.Count - _files_before_new_call);
+            var newLambda = LambdaHandler.CallFunction(Lambda.JS_Query, json, true).Result;
+            Console.WriteLine("Resultado da invocação: {0} {1}",newLambda.StatusCode, newLambda.HttpStatusCode);
         }
         else
         {
+            Console.WriteLine("Analisando arquivos [{0}] a [{1}] de [{2}]", input.StartAt, count - input.StartAt, count);
             foreach (var jsFile in jsFiles)
             {
                 CheckPackages(jsFile, input.AnalysisId);
+                analyzed++;
             }
+            Console.WriteLine("{0} arquivos enviados para análise", analyzed);
         }
         return string.Empty;
     }

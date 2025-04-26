@@ -4,9 +4,8 @@ using Common.ClassesWeb.VirusTotal;
 using Common.JsonSourceGenerators;
 using Res;
 using RestSharp;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Common.Handlers
 {
@@ -147,6 +146,67 @@ namespace Common.Handlers
                 extension.VirusTotalAnalysisUrl = string.Empty;
             }
         }
+
+        public static string UploadFileToVTRestSharp(byte[] file, long size)
+        {
+            try
+            {
+                string uploadUrl = Params.VirusTotalFileURL;
+
+                if (size > crx_size_threshold)
+                {
+                    Console.WriteLine("Arquivo muito grande para chamada padrão, requisitando url de upload...");
+                    var urlRequest = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Get,
+                        RequestUri = new Uri(Params.VirusTotalUrlRequest),
+                        Headers =
+                    {
+                        {"accept", "application/json"},
+                        {"x-apikey", Keys.virus_total_api_key},
+                    },
+                    };
+
+                    var json = _httpCLient.Send(urlRequest).Content.ReadAsStringAsync().Result;
+                    uploadUrl = (JsonSerializer.Deserialize(json, VTUploadSG.Default.VTUploadUrlJson) ?? new VTUploadUrlJson()).UploadUrl;
+                    Console.WriteLine("Url de upload obtida.");
+                }
+
+                var options = new RestClientOptions(uploadUrl);
+                var client = new RestClient(options);
+
+                var request = new RestRequest(string.Empty)
+                {
+                    AlwaysMultipartFormData = true,
+                };
+                request.AddHeader("accept", "application/json");
+                request.AddHeader("x-apikey", Keys.virus_total_api_key);
+                request.FormBoundary = "---011000010111000001101001";
+                request.AddFile("file", file, "compressed.zip");
+
+                Console.WriteLine("Enviando arquivo para análise do VirusTotal...");
+                var response = client.Post(request);
+
+                var content = response.Content ?? string.Empty;
+                Console.WriteLine("Resposta recebida:");
+
+                var node = JsonObject.Parse(content).ToJsonString(new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                });
+                Console.WriteLine(node);
+
+                var queue = JsonSerializer.Deserialize(content, VTQueueSG.Default.VTQueueJson) ?? new VTQueueJson();
+                return queue.Information.AnalysisLinks.AnalysisUrl;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return string.Empty;
+            }
+        }
+
+
         public static VTResponse CheckVTAnalysis(string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -163,7 +223,7 @@ namespace Common.Handlers
                     Headers =
                     {
                         {"accept", "application/json" },
-                        {"x-apikey", Res.Keys.virus_total_api_key }
+                        {"x-apikey", Keys.virus_total_api_key }
                     }
                 };
 

@@ -275,7 +275,7 @@ namespace Common.Handlers
 
             for (int i = 0; i < qtdIter; i++)
             {
-                TestSimilarityHandler.GetSimilarityShort(s1, s2, Sdic1, Sdic2);
+                GetSimilarityShort(s1, s2, Sdic1, Sdic2);
             }
             watchShort.Stop();
 

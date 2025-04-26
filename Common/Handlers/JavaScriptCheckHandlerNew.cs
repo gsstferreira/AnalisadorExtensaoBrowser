@@ -1,8 +1,12 @@
-﻿using Common.Classes;
+﻿using Amazon.Lambda;
+using Amazon.Runtime;
+using Common.Classes;
 using Common.ClassesJSON;
 using Common.JsonSourceGenerators;
-using ICSharpCode.SharpZipLib.Tar;
+using Res;
+using SharpZipLib.Tar;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Common.Handlers
@@ -22,7 +26,7 @@ namespace Common.Handlers
                     list.Add(new JSFile(entry));
                 }
             }
-            return [.. list.DistinctBy(x => x.LenChecksum).OrderBy(x => x.GetFullName())];
+            return [.. list.DistinctBy(x => x.FullName).DistinctBy(x => x.Crc32).OrderBy(x => x.FullName)];
         }
 
         public static long GetPotentialNPMPackages(JSFile jsFile)
@@ -33,7 +37,7 @@ namespace Common.Handlers
             {
                 var jsName = jsFile.Name.EndsWith(".min") ? jsFile.Name.Replace(".min", string.Empty) : jsFile.Name;
 
-                var result = _httpClient.GetStringAsync(Res.Params.NPMRegistryQueryURL.Replace("[NAME]", jsName)).Result;
+                var result = _httpClient.GetStringAsync(Params.NPMRegistryQueryURL.Replace("[NAME]", jsName)).Result;
 
                 if (!string.IsNullOrEmpty(result))
                 {
@@ -60,24 +64,22 @@ namespace Common.Handlers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("[{0}] - {1}",jsFile.Name,ex.Message);
             }
 
             sw.Stop();
             return sw.ElapsedMilliseconds;
         }
         public static void ValidateNPMPackages(JSFile jsFile)
-        { 
-
-            if (jsFile.NPMRegistries.Count > 0) 
+        {
+            if (jsFile.NPMRegistries.Count > 0)
             {
                 var sw = Stopwatch.StartNew();
                 SimilarityHandler.SetCosineProfile(jsFile);
 
-                // Obtendo os pacotes npm para cada registro encontrado
-                Parallel.ForEach(jsFile.NPMRegistries, reg =>
+                Parallel.ForEach(jsFile.NPMRegistries, (reg) =>
                 {
-                    var result = _httpClient.GetStringAsync(Res.Params.NPMRegistryGetURL.Replace("[NAME]", reg.Name)).Result;
+                    var result = TryHttpGetString(Params.NPMRegistryGetURL.Replace("[NAME]", reg.Name), 5, true);
 
                     if (!string.IsNullOrEmpty(result))
                     {
@@ -109,19 +111,26 @@ namespace Common.Handlers
                             };
                             reg.Packages.Add(package);
                         }
+                        Console.WriteLine("Informações do registro [{0}] obtidas do repositório", reg.Name);
                     }
                 });
 
-                // Analisando os pacotes de cada registro
-                Parallel.ForEach(jsFile.NPMRegistries, (reg,state) =>
-                {
-                    Stopwatch stopwatch = Stopwatch.StartNew();
+                var list = jsFile.NPMRegistries.OrderBy(x => x.Packages.Count);
 
-                    Parallel.ForEach(reg.Packages, () => new JSCheckBufferBag(), (package, state, sPair) =>
+                Stopwatch stopwatch = new();
+                foreach (var reg in list)
+                {
+                    stopwatch.Restart();
+                    int numPackages = reg.Packages.Count;
+                    int profDictionaryCap = (int)(jsFile.Lenght / SimilarityHandler.DEFAULT_K);
+
+                    var client = new HttpClient();
+
+                    Parallel.ForEach(reg.Packages, () => new JSCheckBufferBag(profDictionaryCap), (package, state,sPair) =>
                     {
                         try
                         {
-                            using (var httpStream = _httpClient.GetStreamAsync(package.TarballUrl).Result)
+                            using (var httpStream = client.GetStreamAsync(package.TarballUrl).Result)
                             {
                                 httpStream.CopyTo(sPair.DownloadStream);
                             }
@@ -130,7 +139,6 @@ namespace Common.Handlers
 
                             if (package.BestSimilarity == 1.0)
                             {
-                                sPair.Close();
                                 state.Break();
                             }
                         }
@@ -139,17 +147,16 @@ namespace Common.Handlers
                             Console.WriteLine(ex.Message);
                         }
                         return sPair;
-                    }, (sPair) =>
+                    }, (sPair) => 
                     {
                         sPair.Close();
                     });
+                    client.Dispose();
 
                     reg.CountNumFilesChecked();
-
+                    double hPackSimilarity = -1;
                     if (reg.HasAnyMatchedPackages())
                     {
-                        double hPackSimilarity = -1;
-
                         foreach (var package in reg.Packages)
                         {
                             if (package.BestSimilarity > hPackSimilarity)
@@ -159,16 +166,22 @@ namespace Common.Handlers
                             }
                         }
                         reg.DisposePackagesList();
-
-                        if (hPackSimilarity == 1.0)
-                        {
-                            state.Break();
-                        }
                     }
-                    var elapsed = stopwatch.ElapsedMilliseconds/1000.0;
+                    var time = stopwatch.ElapsedMilliseconds / 1000.0;
 
-                    Console.WriteLine("[{0}] - ({1}) - {2} arquivos em {3:0.00}s", jsFile.Name, reg.Name, reg.TotalNumFilesChecked, elapsed);
-                });
+                    Console.WriteLine("[{0}] - ({1}) - {2} arquivos de {3} versões em {4:0.00}s",
+                        jsFile.Name,
+                        reg.Name,
+                        reg.TotalNumFilesOpened,
+                        numPackages,
+                        time);
+
+                    if (hPackSimilarity == 1.0)
+                    {
+                        break;
+                    }
+                }
+
                 double highestSimilarity = -1;
 
                 foreach (var registry in jsFile.NPMRegistries)
@@ -188,26 +201,28 @@ namespace Common.Handlers
                 var elapsed = sw.ElapsedMilliseconds / 1000.0;
 
                 Console.WriteLine("[{0}] - Todos os registros analisados em {1:0.00}s", jsFile.Name, elapsed);
-            }            
+            }
         }
         private static void GetTarEntries(JSCheckBufferBag sPair, NPMPackage package, JSFile jsFile)
         {
             int filesChecked = 0;
+            int filesOpened = 0;
 
             var tarStream = sPair.SetTarReading();
 
             while (tarStream.GetNextEntry() is TarEntry entry)
             {
-                if(!entry.IsDirectory)
+                if (!entry.IsDirectory)
                 {
                     filesChecked++;
-                    if (entry.Name.EndsWith(".js"))
+                    if (IsJsFile(entry.Name))
                     {
                         double sizeRatio = (double)entry.Size / jsFile.Lenght;
 
                         if (sizeRatio < 1.15 && sizeRatio > 0.85)
                         {
-                            var content = sPair.GetEntry(tarStream);
+                            filesOpened++;
+                            var content = tarStream.GetContentAsString();
 
                             package.UpdateSimilarity(SimilarityHandler.GetSimilarity(jsFile, content, sPair.ContentProfile));
 
@@ -221,6 +236,69 @@ namespace Common.Handlers
             }
 
             package.FilesChecked = filesChecked;
+            package.FilesOpened = filesOpened;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //Implementação manual de string.EndsWith(".js") para melhorias de desempenho
+        private static bool IsJsFile(string fileName)
+        {
+            if (fileName.Length >= 3)
+            {
+                if (fileName[^1] == 's')
+                {
+                    if (fileName[^2] == 'j')
+                    {
+                        if (fileName[^3] == '.')
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private static string TryHttpGetString(string url, int numrRetries, bool throwIfFail)
+        {
+            bool sucessful = false;
+            Exception lastException = new();
+
+            string result = string.Empty;
+
+            for (int i = 0; i < numrRetries; i++)
+            {
+                try
+                {
+                    result = _httpClient.GetStringAsync(url).Result;
+                    sucessful = true;
+                }
+                catch (Exception e)
+                {
+                    lastException = e;
+                    Console.WriteLine("Falha ao tentar acessar ({0}), tentando novamente...", url);
+                }
+                if (sucessful)
+                {
+                    return result;
+                }
+            }
+            if(!sucessful)
+            {
+                if(throwIfFail)
+                {
+                    throw lastException;
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+            else
+            {
+                return result;
+            }
         }
     }
 }

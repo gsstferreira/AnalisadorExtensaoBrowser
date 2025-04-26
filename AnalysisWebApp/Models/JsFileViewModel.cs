@@ -7,6 +7,7 @@ namespace AnalysisWebApp.Models
     public class JsFileViewModel
     {
         public string Name { get; set; }
+        public string Directory { get; set; }
         public bool HasMatch { get; set; }
         public string MatchedLibrary { get; set; }
         public string MatchedVersion { get; set; }
@@ -22,6 +23,7 @@ namespace AnalysisWebApp.Models
         public JsFileViewModel()
         {
             Name = string.Empty;
+            Directory = string.Empty;
             HasMatch = false;
             MatchedLibrary = string.Empty;
             MatchedVersion = string.Empty;
@@ -37,6 +39,7 @@ namespace AnalysisWebApp.Models
         public JsFileViewModel(ExtensionJSFile file)
         {
             Name = file.Name;
+            Directory = file.Directory;
             HasMatch = file.HasMatch;
             MatchedLibrary = file.MatchedLibrary;
             MatchedVersion = file.MatchedVersion;

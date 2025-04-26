@@ -6,13 +6,13 @@
         "dotnet lambda help",
         "All the command line options for the Lambda command can be specified in this file."
     ],
-    "profile"     : "BrowserExtensionAnalysis",
+    "profile"     : "ExtAnalysis",
     "region"      : "sa-east-1",
     "configuration" : "Release",
     "function-architecture" : "arm64",
     "function-runtime"      : "dotnet8",
-    "function-memory-size"  : 2048,
-    "function-timeout"      : 60,
+    "function-memory-size"  : 3008,
+    "function-timeout"      : 180,
     "function-handler"      : "LambdaJsCheckerPackage::LambdaJsCheckerPackage.Function::FunctionHandler",
     "framework"             : "net8.0",
     "function-name"         : "ExtensionAnalysis_JS_Package",
@@ -23,5 +23,5 @@
     "tracing-mode"             : "PassThrough",
     "environment-variables"    : "",
     "image-tag"                : "",
-    "function-description"     : ""
+    "function-description"     : "Análise dos pacotes retornados pelo registro npm"
 }

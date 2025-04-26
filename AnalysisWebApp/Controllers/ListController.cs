@@ -10,10 +10,19 @@ namespace AnalysisWebApp.Controllers
     {
         public IActionResult Index()
         {
-            var extInfo = DynamoDBHandler.GetEntries<ExtensionInfoResult>(DBTables.ExtensionInfo);
-            var model = new AnalysisListViewModel(0, extInfo);
+            try
+            {
+                var extInfo = DynamoDBHandler.GetEntries<ExtInfoResult>(DBTables.ExtensionInfo);
+                var model = new AnalysisListViewModel(0, extInfo);
 
-            return View(model);
+                return View(model);
+            }
+            catch (Exception ex) 
+            {
+                var exception = new ExceptionViewModel(ex);
+                TempData["ThrownException"] = exception.AsJson();
+                return RedirectToAction("Error", "Home");
+            }
         }
     }
 }

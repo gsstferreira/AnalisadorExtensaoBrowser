@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Common.Classes
+﻿namespace Common.Classes
 {
     public class NpmRegistry
     {
@@ -20,6 +14,7 @@ namespace Common.Classes
         public List<NPMPackage> Packages { get; set; }
         public NPMPackage? BestPackage { get; set; }
         public int TotalNumFilesChecked { get; set; }
+        public int TotalNumFilesOpened { get; set; }
         public NpmRegistry() 
         { 
             Name = string.Empty;
@@ -46,6 +41,7 @@ namespace Common.Classes
         public void CountNumFilesChecked()
         {
             TotalNumFilesChecked = Packages.Sum(x => x.FilesChecked);
+            TotalNumFilesOpened = Packages.Sum(x => x.FilesOpened);
         }
 
         public void DisposePackagesList()

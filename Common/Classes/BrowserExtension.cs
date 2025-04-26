@@ -1,8 +1,6 @@
-﻿using Common.Enums;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using Common.ClassesWeb.VirusTotal;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace Common.Classes
 {
@@ -154,6 +152,12 @@ namespace Common.Classes
                     ZipFileStream.Seek(0, SeekOrigin.Begin);
                 }
             }
+        }
+
+        public void DisposeArchives()
+        {
+            ZipFileStream?.Dispose();
+            CrxFileStream?.Dispose();
         }
     }
 }

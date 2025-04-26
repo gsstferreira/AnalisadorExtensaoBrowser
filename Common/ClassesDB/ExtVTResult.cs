@@ -2,16 +2,16 @@
 
 namespace Common.ClassesDB
 {
-    public class ExtensionVTResult:AnalysisResult
+    public class ExtVTResult:AnalysisResult
     {
         public string VirusTotalResultURL { get; set; }
 
-        public ExtensionVTResult() : base() 
+        public ExtVTResult() : base() 
         {
             VirusTotalResultURL = string.Empty;
         }
 
-        public ExtensionVTResult(BrowserExtension extension, string analysisId) : base(analysisId)
+        public ExtVTResult(BrowserExtension extension, string analysisId) : base(analysisId)
         {
             VirusTotalResultURL = extension.VirusTotalAnalysisUrl;
         }

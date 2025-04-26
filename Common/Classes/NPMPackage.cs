@@ -7,6 +7,7 @@
         public DateTime ReleaseDate { get; set; }
         public string TarballUrl { get; set; }
         public int FilesChecked { get; set; }
+        public int FilesOpened { get; set; }
         public double BestSimilarity { get; set; }
         public NPMPackage() 
         {

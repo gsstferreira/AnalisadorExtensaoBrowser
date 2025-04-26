@@ -3,26 +3,24 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
+using Amazon.Runtime.CredentialManagement;
+using Amazon.Util;
+using Res;
 
 namespace Common.Handlers
 {
     public class DynamoDBHandler
     {
-        private static readonly string isLambda;
         private static readonly AmazonDynamoDBClient DBClient;
         private static readonly DynamoDBContext Context;
         static DynamoDBHandler()
         {
-            isLambda = Environment.GetEnvironmentVariable("LAMBDA_TASK_ROOT") ?? string.Empty;
-
-            if (string.IsNullOrEmpty(isLambda))
+            if (new SharedCredentialsFile().TryGetProfile(Keys.AWSProfile, out _))
             {
                 DBClient = new AmazonDynamoDBClient(new AmazonDynamoDBConfig
                 {
                     RegionEndpoint = RegionEndpoint.SAEast1,
-                    Profile = new Profile("BrowserExtensionAnalysis")
+                    Profile = new Profile(Keys.AWSProfile)
                 });
             }
             else

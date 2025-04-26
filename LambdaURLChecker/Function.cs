@@ -3,7 +3,6 @@ using Common.ClassesDB;
 using Common.ClassesLambda;
 using Common.Handlers;
 using Res;
-using System.Text.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -24,7 +23,7 @@ public class Function
 
         UrlCheckHandler.CheckURLs(extension);
 
-        var checkedUrls = new ExtensionURLsResult(extension, payload.AnalysisId);
+        var checkedUrls = new ExtURLsResult(extension, payload.AnalysisId);
 
         DynamoDBHandler.PutEntry(DBTables.URLs, checkedUrls);
         return string.Empty;

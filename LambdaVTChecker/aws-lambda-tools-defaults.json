@@ -6,7 +6,7 @@
         "dotnet lambda help",
         "All the command line options for the Lambda command can be specified in this file."
     ],
-    "profile"     : "BrowserExtensionAnalysis",
+    "profile"     : "ExtAnalysis",
     "region"      : "sa-east-1",
     "configuration" : "Release",
     "function-architecture" : "arm64",
@@ -23,5 +23,5 @@
     "tracing-mode"             : "PassThrough",
     "environment-variables"    : "",
     "image-tag"                : "",
-    "function-description"     : ""
+    "function-description"     : "Análise VirusTotal"
 }

@@ -34,26 +34,26 @@
                 <thead class="table-bordered border-primary" style="background-color:lightblue">
                     <tr style="align-content:center">
                         <th scope="col" style="width:25%;text-align:center">
-                            <h6>
+                            <span>
                                 <b>Arquivo</b>
-                            </h6>
+                            </span>
                         </th>
                         <th scope="col" style="width:35%;text-align:center">
-                            <h6>
+                            <span>
                                 <b>
                                     Pacote Correspondente
                                 </b>
-                            </h6>
+                            </span>
                         </th>
                         <th scope="col" style="width:10%;text-align:center">
-                            <h6>
+                            <span>
                                 <b>Similaridade</b>
-                            </h6>
+                            </span>
                         </th>
                         <th scope="col" style="width:30%;text-align:center">
-                            <h6>
+                            <span>
                                 <b>Vulnerabilidades Conhecidas</b>
-                            </h6>
+                            </span>
                         </th>
                     </tr>
                 </thead>
@@ -61,39 +61,40 @@
                     @foreach (var file in list)
                     {
                         <tr>
-                            <td style="align-content:center;text-align:center">
-                                <h6>@(file.Name)</h6>
+                            <td style="align-content:center">
+                                <span style="color:dimgrey">@(file.Directory)</span><span><b>@(file.Name)</b></span>
                             </td>
                             <td style="align-content:center">
                                 @if (file.HasMatch)
                                 {
-                                    <h6>
+                                    <span>
                                         <a href="@(file.NpmPackageLink)" target="_blank" style="text-decoration:none">npm - @(file.MatchedLibrary) <img src="~/icons/open_in_new.svg" width="16px" height="16px" style="margin-bottom:3px" /></a> -  <b>@(file.GetMatchedVersionInfo())</b>
-                                    </h6>
+                                    </span>
+                                    <br />
                                     <small style="color:dimgrey"><b>Versão mais recente (release):</b> @(file.GetLatestVersionStableInfo())</small>
                                     <br />
                                     <small style="color:dimgrey"><b>Versão mais recente (dev):</b> @(file.GetLatestVersionDevInfo())</small>
                                 }
                                 else
                                 {
-                                    <h6 style="text-align:center">Sem correspondência</h6>
+                                    <div style="text-align:center">
+                                        <span>Sem correspondência</span>
+                                    </div>
                                 }
                             </td>
                             <td style="align-content:center;text-align:center">
-                                <h6>
-                                    @(file.HasMatch ? file.Similarity : "-")
-                                </h6>
+                                <span>@(file.HasMatch ? file.Similarity : "-")</span>
                             </td>
                             <td style="align-content:center;text-align:center">
                                 @if (file.HasMatch)
                                 {
-                                    <h6>
+                                    <span>
                                         <a href="@(file.SnykVulnerabilityLink)" target="_blank" style="text-decoration:none">Snyk - @(file.MatchedLibrary) @(file.MatchedVersion) <img src="~/icons/open_in_new.svg" width="20px" height="20px" style="margin-bottom:3px" /></a>
-                                    </h6>
+                                    </span>
                                 }
                                 else
                                 {
-                                    <h6>-</h6>
+                                    <span>-</span>
                                 }
                             </td>
                         </tr>

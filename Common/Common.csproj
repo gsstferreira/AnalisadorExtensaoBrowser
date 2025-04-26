@@ -28,15 +28,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="3.7.402.43" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.406.25" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.402.45" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.407" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.400">
       <TreatAsUsed>true</TreatAsUsed>
     </PackageReference>
-    <PackageReference Include="AWSSDK.Lambda" Version="3.7.412.21" />
+    <PackageReference Include="AWSSDK.Lambda" Version="3.7.412.23" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
     <PackageReference Include="RestSharp" Version="112.1.0" />
-    <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4">
       <TreatAsUsed>true</TreatAsUsed>
     </PackageReference>
@@ -47,6 +46,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Resources\Res.csproj" />
+    <ProjectReference Include="..\SharpZipLibImport\SharpZipLib.csproj" />
   </ItemGroup>
 
 </Project>

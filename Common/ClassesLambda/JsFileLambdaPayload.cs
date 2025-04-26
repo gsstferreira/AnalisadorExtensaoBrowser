@@ -1,11 +1,4 @@
 ﻿using Common.Classes;
-using Common.Handlers;
-using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.ClassesLambda
 {
@@ -13,6 +6,7 @@ namespace Common.ClassesLambda
     {
         public string AnalysisId { get; set; }
         public string Name { get; set; }
+        public string Directory { get; set; }
         public string Content { get; set; }
         public List<NpmRegistry> NPMRegistries { get; set; }
 
@@ -20,6 +14,7 @@ namespace Common.ClassesLambda
         {
             AnalysisId = string.Empty;
             Name = string.Empty;
+            Directory = string.Empty;
             Content = string.Empty;
             NPMRegistries = [];
         }
@@ -28,6 +23,7 @@ namespace Common.ClassesLambda
         {
             AnalysisId = analysisId;
             Name = file.Name;
+            Directory = file.Path;
             Content = file.Content;
             NPMRegistries = file.NPMRegistries;
         }

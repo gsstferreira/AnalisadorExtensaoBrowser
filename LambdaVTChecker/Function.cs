@@ -23,7 +23,7 @@ public class Function
 
         VirusTotalHandler.UploadFileToVTRestSharp(extension);
 
-        var vtCheckResult = new ExtensionVTResult(extension, payload.AnalysisId);
+        var vtCheckResult = new ExtVTResult(extension, payload.AnalysisId);
 
         DynamoDBHandler.PutEntry(DBTables.VirusTotal, vtCheckResult);
         return string.Empty;

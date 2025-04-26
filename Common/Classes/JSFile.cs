@@ -1,8 +1,6 @@
 ﻿using Common.ClassesLambda;
 using Common.Handlers;
-using System.Collections;
 using System.IO.Compression;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Common.Classes
@@ -11,9 +9,10 @@ namespace Common.Classes
     {
         public string Name { get; set; }
         public string Path { get; set; }
+        public string FullName { get; set; }
         public string Content { get; set; }
         public long Lenght { get; set; }
-        public long LenChecksum { get; set; }
+        public uint Crc32 { get; set; }
         public List<NpmRegistry> NPMRegistries { get; set; }
         public NpmRegistry? BestRegistry { get; set; }
         public int TotalFilesChecked { get; set; }
@@ -23,27 +22,29 @@ namespace Common.Classes
         {
             Name = entry.Name.Replace(".js",string.Empty).Trim();
             Path = entry.FullName.Replace(entry.Name, string.Empty).Trim();
+            FullName = entry.FullName;
 
             NPMRegistries = [];
-            Profile = [];
-            LenChecksum = entry.Crc32 + Lenght;
+            Crc32 = entry.Crc32;
             using (var reader = new StreamReader(entry.Open()))
             {
                 Content = reader.ReadToEnd().Trim();
             }
             Lenght = Content.Length;
-            SimilarityHandler.SetCosineProfile(this);
             BestRegistry = null;
             TotalFilesChecked = 0;
+            Profile = new((int)Lenght / SimilarityHandler.DEFAULT_K);
+            SimilarityHandler.SetCosineProfile(this);
         }
 
         public JSFile(JSFileLambdaPayload payload)
         {
             Name = payload.Name;
-            Path = string.Empty;
+            Path = payload.Directory;
+            FullName = string.Empty;
             Content = payload.Content;
             Lenght = Content.Length;
-            LenChecksum = 0;
+            Crc32 = 0;
             NPMRegistries = payload.NPMRegistries;
             TotalFilesChecked = 0;
             Profile = [];
@@ -59,11 +60,6 @@ namespace Common.Classes
             Profile?.Clear();
         }
 
-        public string GetFullName()
-        {
-            return Path + Name;
-        }
-
         public override string ToString()
         {
             if (BestRegistry is not null)
@@ -73,7 +69,7 @@ namespace Common.Classes
                     var package = BestRegistry.BestPackage;
                     var sBuilder = new StringBuilder();
 
-                    sBuilder.Append(string.Format("{0} | ", GetFullName()));
+                    sBuilder.Append(string.Format("{0} | ", FullName));
 
                     var similarity = package.BestSimilarity;
                     sBuilder.Append(string.Format("({0:0.00}%) similar com ", similarity * 100));
@@ -83,7 +79,7 @@ namespace Common.Classes
                     return sBuilder.ToString();
                 }
             }
-            return string.Format("{0} | Sem correspondências - {1} arquivos analisados", GetFullName(),TotalFilesChecked);
+            return string.Format("{0} | Sem correspondências - {1} arquivos analisados", FullName,TotalFilesChecked);
         }
     }
 }

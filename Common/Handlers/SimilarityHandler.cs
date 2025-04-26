@@ -21,7 +21,7 @@ namespace Common.Handlers
         [GeneratedRegex("\\s+")]
         private static partial Regex RegexSimilarity();
 
-        private const int DEFAULT_K = 5;
+        public const int DEFAULT_K = 5;
         private static readonly Regex SPACE_REG = RegexSimilarity();
 
         public static void SetCosineProfile(JSFile jsFile)

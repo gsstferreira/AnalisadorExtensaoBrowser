@@ -2,23 +2,23 @@
 
 namespace Common.ClassesDB
 {
-    public class ExtensionJSResult: AnalysisResult
+    public class ExtJSResult: AnalysisResult
     {
         public int TotalCount { get; set; }
         public List<ExtensionJSFile> ExtensionJSFiles { get; set; }
 
-        public ExtensionJSResult():base() 
+        public ExtJSResult():base() 
         {
             ExtensionJSFiles = [];
             TotalCount = 0;
         }
 
-        public ExtensionJSResult(BrowserExtension extension, string analysisId) : base(analysisId)
+        public ExtJSResult(BrowserExtension extension, string analysisId) : base(analysisId)
         {
             ExtensionJSFiles = [];
             TotalCount = extension.ContainedJSFiles.Count;
         }
-        public ExtensionJSResult(ICollection<JSFile> files, string analysisId) : base(analysisId)
+        public ExtJSResult(ICollection<JSFile> files, string analysisId) : base(analysisId)
         {
             ExtensionJSFiles = [];
             TotalCount = files.Count;

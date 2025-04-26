@@ -4,6 +4,6 @@ using System.Text.Json.Serialization;
 namespace Common.JsonSourceGenerators
 {
     [JsonSourceGenerationOptions(WriteIndented = true)]
-    [JsonSerializable(typeof(ExtensionInfoResult))]
+    [JsonSerializable(typeof(ExtInfoResult))]
     public partial class ExtensionInfoSG : JsonSerializerContext  {}
 }

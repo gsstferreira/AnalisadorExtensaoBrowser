@@ -1,14 +1,17 @@
-﻿using Common.Classes;
+﻿using Amazon.Lambda;
+using Common.Classes;
 using Common.ClassesJSON;
 using Common.JsonSourceGenerators;
-using ICSharpCode.SharpZipLib.Tar;
+using SharpZipLib.Tar;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Common.Handlers
 {
-    public class JavaScriptCheckHandler
+    public abstract class JavaScriptCheckHandler
     {
         private const int _sleep_npm_queries = 1000;
         private static readonly HttpClient _httpClient = new();
@@ -76,16 +79,16 @@ namespace Common.Handlers
             foreach (var entry in extension.ExtensionContent.Entries)
             {
                 bool isRight = entry.Name.Contains("analytics") || entry.Name.Contains("jquery") || entry.Name.Contains("readability");
-                if (entry.Name.Trim().EndsWith(".js"))
+                if (entry.Name.Trim().EndsWith(".js") && entry.Name.Contains("analytics"))
                 {
                     var jsFile = new JSFile(entry);
                     extension.ContainedJSFiles.Add(jsFile);
                 }
             }
-            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.DistinctBy(x => x.LenChecksum).OrderBy(x => x.GetFullName())];
+            extension.ContainedJSFiles = [.. extension.ContainedJSFiles.DistinctBy(x => x.Crc32).OrderBy(x => x.FullName)];
         }
 
-        
+
         private static long GetPotentialNPMPackages(JSFile jsFile)
         {
             Stopwatch sw = new();
@@ -131,33 +134,32 @@ namespace Common.Handlers
 
         private static bool ValidateNPMPackages(JSFile jsFile)
         {
-            var client2 = new HttpClient();
-
-            Parallel.ForEach(jsFile.NPMRegistries, (registry,state) =>
+            if (jsFile.NPMRegistries.Count > 0)
             {
-                try
+                SimilarityHandler.SetCosineProfile(jsFile);
+
+                // Obtendo os pacotes npm para cada registro encontrado
+                Parallel.ForEach(jsFile.NPMRegistries, reg =>
                 {
-                    var watch = new Stopwatch();
-                    watch.Start();
-                    var result = _httpClient.GetStringAsync(Res.Params.NPMRegistryGetURL.Replace("[NAME]", registry.Name)).Result;
+                    var result = _httpClient.GetStringAsync(Res.Params.NPMRegistryGetURL.Replace("[NAME]", reg.Name)).Result;
 
                     if (!string.IsNullOrEmpty(result))
                     {
                         var queryResult = JsonSerializer.Deserialize(result, NpmPackageSG.Default.NpmPackageJson) ?? new NpmPackageJson();
 
-                        registry.LatestVersionStable = queryResult.DistributionTags.LatestVersionStable;
-                        registry.LatestVersionDevelopment = queryResult.DistributionTags.LatestVersionDevelopment;
+                        reg.LatestVersionStable = queryResult.DistributionTags.LatestVersionStable;
+                        reg.LatestVersionDevelopment = queryResult.DistributionTags.LatestVersionDevelopment;
 
                         DateTime versionDate = DateTime.MinValue;
 
-                        if (queryResult.DateVersions.TryGetValue(registry.LatestVersionStable, out versionDate))
+                        if (queryResult.DateVersions.TryGetValue(reg.LatestVersionStable, out versionDate))
                         {
-                            registry.LatestUpdateStable = versionDate;
+                            reg.LatestUpdateStable = versionDate;
                         }
 
-                        if (queryResult.DateVersions.TryGetValue(registry.LatestVersionDevelopment, out versionDate))
+                        if (queryResult.DateVersions.TryGetValue(reg.LatestVersionDevelopment, out versionDate))
                         {
-                            registry.LatestUpdateDevelopment = versionDate;
+                            reg.LatestUpdateDevelopment = versionDate;
                         }
 
                         foreach (var version in queryResult.Versions)
@@ -169,81 +171,123 @@ namespace Common.Handlers
                                 ReleaseDate = queryResult.DateVersions[version.Key],
                                 TarballUrl = version.Value.DstributionDetails.TarballUrl
                             };
-                            registry.Packages.Add(package);
+                            reg.Packages.Add(package);
+                        }
+                    }
+                });
+                var regTasks = new List<Task>();
+                
+                int profDictionaryCap = (int)(jsFile.Lenght / SimilarityHandler.DEFAULT_K);
+
+                foreach (var reg in jsFile.NPMRegistries)
+                {
+                    regTasks.Add(Task.Factory.StartNew(() => 
+                    {
+                        var packTasks = new List<Task>();
+                        var cancelToken = new CancellationTokenSource();
+
+                        if (reg.Packages.Count > 10)
+                        {
+                            var newList = new List<NPMPackage>(reg.Packages);
+
+                            while (newList.Count > 0)
+                            {
+                                var iterList = newList.Take(10).ToList();
+                                newList = [.. newList.Skip(10)];
+
+                                packTasks.Add(Task.Factory.StartNew(() =>
+                                {
+                                    var bufferBag = new JSCheckBufferBag(profDictionaryCap);
+                                    foreach (var package in iterList)
+                                    {
+                                        try
+                                        {
+                                            using (var httpStream = _httpClient.GetStreamAsync(package.TarballUrl).Result)
+                                            {
+                                                httpStream.CopyTo(bufferBag.DownloadStream);
+                                            }
+                                            GetTarEntries(bufferBag, package, jsFile);
+                                        }
+                                        catch (Exception ex) { Console.WriteLine(ex.Message); }
+                                        finally
+                                        {
+                                            if (package.BestSimilarity == 1.0)
+                                            {
+                                                cancelToken.Cancel();
+                                            }
+                                            bufferBag.Clear();
+                                        }
+                                    }
+                                    bufferBag.Close();
+                                }, cancelToken.Token));
+                            }
+                        }
+                        else
+                        {
+                            foreach (var package in reg.Packages)
+                            {
+                                packTasks.Add(Task.Factory.StartNew(() =>
+                                {
+                                    var bufferBag = new JSCheckBufferBag(profDictionaryCap);
+
+                                    try
+                                    {
+                                        using (var httpStream = _httpClient.GetStreamAsync(package.TarballUrl).Result)
+                                        {
+                                            httpStream.CopyTo(bufferBag.DownloadStream);
+                                        }
+                                        GetTarEntries(bufferBag, package, jsFile);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine(ex.Message);
+                                    }
+                                    finally
+                                    {
+                                        bufferBag.Close();
+                                    }
+                                    if (package.BestSimilarity == 1.0)
+                                    {
+                                        cancelToken.Cancel();
+                                    }
+                                }, cancelToken.Token));
+                            }
                         }
 
-                        Parallel.ForEach(registry.Packages, () => new JSCheckBufferBag(), (package, state, sPair) =>
-                        {
-                            try
-                            {
-                                using (var httpStream = _httpClient.GetStreamAsync(package.TarballUrl).Result)
-                                {
-                                    httpStream.CopyTo(sPair.DownloadStream);
-                                }
-                                GetTarEntries(sPair, package, jsFile);
-                                sPair.Clear();
-
-                                if (package.BestSimilarity == 1.0)
-                                {
-                                    sPair.Close();
-                                    state.Break();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
-                            return sPair;
-                        }, (sPair) =>
-                        {
-                            sPair.Close();
-                        });
-
-                        registry.CountNumFilesChecked();
-
-                        if (registry.HasAnyMatchedPackages())
+                        Task.WaitAll([.. packTasks]);
+                        packTasks.Clear();
+                        cancelToken.Dispose();
+                        if (reg.HasAnyMatchedPackages())
                         {
                             double hPackSimilarity = -1;
 
-                            foreach (var package in registry.Packages)
+                            foreach (var package in reg.Packages)
                             {
                                 if (package.BestSimilarity > hPackSimilarity)
                                 {
                                     hPackSimilarity = package.BestSimilarity;
-                                    registry.BestPackage = package;
+                                    reg.BestPackage = package;
                                 }
                             }
-                            registry.DisposePackagesList();
-
-                            if (hPackSimilarity == 1.0)
-                            {
-                                state.Break();
-                            }
+                            reg.DisposePackagesList();
                         }
+                    }));
+                }
+                Task.WaitAll([.. regTasks]);
+                regTasks.Clear();
+ 
+                double highestSimilarity = -1;
+
+                foreach (var registry in jsFile.NPMRegistries)
+                {
+                    jsFile.TotalFilesChecked += registry.TotalNumFilesChecked;
+
+                    if (registry.BestPackage is not null)
+                    {
+                        var sim = registry.BestPackage.BestSimilarity;
+                        highestSimilarity = sim > highestSimilarity ? sim : highestSimilarity;
+                        jsFile.BestRegistry = registry;
                     }
-
-                    watch.Stop();
-                    var time = watch.ElapsedMilliseconds / 1000.0;
-
-                    Console.WriteLine("{0} analyzed - {1} files after {2:0.00}s", registry.Name, registry.TotalNumFilesChecked, time);
-                }
-                catch(Exception e) 
-                {
-                    Console.WriteLine(e.Message);
-                }
-            });
-
-            double highestSimilarity = -1;
-
-            foreach (var registry in jsFile.NPMRegistries)
-            {
-                jsFile.TotalFilesChecked += registry.TotalNumFilesChecked;
-
-                if (registry.BestPackage is not null)
-                {
-                    var sim = registry.BestPackage.BestSimilarity;
-                    highestSimilarity = sim > highestSimilarity ? sim : highestSimilarity;
-                    jsFile.BestRegistry = registry;
                 }
             }
 
@@ -255,23 +299,17 @@ namespace Common.Handlers
         }
         private static void GetTarEntries(JSCheckBufferBag sPair, NPMPackage package, JSFile jsFile)
         {
-            int filesChecked = 0;
-
             var tarStream = sPair.SetTarReading();
-
             while (tarStream.GetNextEntry() is TarEntry entry)
             {
-                if(!entry.IsDirectory)
+                if (!entry.IsDirectory)
                 {
-                    filesChecked++;
-                    if (entry.Name.EndsWith(".js"))
+                    package.FilesChecked++;
+                    if (IsComparableSize(entry.Size, jsFile.Lenght))
                     {
-                        double sizeRatio = (double)entry.Size / jsFile.Lenght;
-
-                        if (sizeRatio < 1.15 && sizeRatio > 0.85)
+                        if (IsJsFile(entry))
                         {
-                            var content = sPair.GetEntry(tarStream);
-
+                            var content = tarStream.GetContentAsString();
                             package.UpdateSimilarity(SimilarityHandler.GetSimilarity(jsFile, content, sPair.ContentProfile));
 
                             if (package.BestSimilarity == 1.0)
@@ -282,8 +320,35 @@ namespace Common.Handlers
                     }
                 }
             }
+        }
 
-            package.FilesChecked = filesChecked;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsComparableSize(long size1, long size2)
+        {
+            var sizeRatio = (double)size1 / size2;
+
+            return sizeRatio < 1.15 && sizeRatio > 0.85;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //Implementação manual de string.EndsWith(".js") para melhorias de desempenho
+        private static bool IsJsFile(TarEntry entry)
+        {
+            if (entry.Name.Length > 3)
+            {
+                if (entry.Name[^1] == 's')
+                {
+                    if (entry.Name[^2] == 'j')
+                    {
+                        if (entry.Name[^3] == '.')
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            return false;
         }
     }
 }

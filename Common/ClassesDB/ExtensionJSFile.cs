@@ -5,6 +5,7 @@ namespace Common.ClassesDB
     public  class ExtensionJSFile
     {
         public string Name { get; set; }
+        public string Directory { get; set; }
         public string MatchedLibrary { get; set; }
         public string MatchedVersion { get; set; }
         public string LatestVersionStable { get; set; }
@@ -18,6 +19,7 @@ namespace Common.ClassesDB
         public ExtensionJSFile()
         {
             Name = string.Empty;
+            Directory = string.Empty;
             MatchedLibrary = string.Empty;
             MatchedVersion = string.Empty;
             LatestVersionStable = string.Empty;
@@ -35,6 +37,7 @@ namespace Common.ClassesDB
         public ExtensionJSFile(JSFile jsFile) 
         {
             Name = jsFile.Name;
+            Directory = jsFile.Path;
             TotalFilesChecked = jsFile.TotalFilesChecked;
             MatchedLibrary = string.Empty;
             MatchedVersion = string.Empty;

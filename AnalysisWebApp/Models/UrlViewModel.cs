@@ -1,7 +1,5 @@
 ﻿using Common.Classes;
 using Common.ClassesWeb.GoogleSafeBrowsing;
-using Common.Enums;
-using System.Reflection;
 
 namespace AnalysisWebApp.Models
 {
@@ -10,12 +8,14 @@ namespace AnalysisWebApp.Models
         public string OriginalUrl { get; set; }
         public string Host { get; set; }
         public string RedirectUrl { get; set; }
+        public bool IsThreat { get; set; }
         public bool IsHttps { get; set; }
         public string Threat { get; set; }
         public string UrlType { get; set; }
 
         public UrlViewModel() 
         {
+            IsThreat = false;
             IsHttps = false;
             OriginalUrl = string.Empty;
             Host = string.Empty;
@@ -30,6 +30,12 @@ namespace AnalysisWebApp.Models
             OriginalUrl = url.OriginalUrl;
             Host = url.Host;
             RedirectUrl = url.RedirectUrl;
+
+            IsThreat = url.ThreatType switch
+            {
+                GSBThreatType.SAFE => false,
+                _ => true
+            };
 
             Threat = url.ThreatType switch
             {

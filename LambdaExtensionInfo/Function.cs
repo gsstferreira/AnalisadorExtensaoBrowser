@@ -17,11 +17,14 @@ public class Function
     {
         var extension = ExtensionDownloadhandler.GetExtension(extensionUrl, Common.Enums.DownloadType.OnlyScrape);
 
-        var analysisId = Convert.ToBase64String(Encoding.UTF8.GetBytes(extension.Id + extension.Version));
+        //extension: entidade representando a extensão de navegador
+        string concat = extension.Id + extension.Version;
+        string analysisId = Convert.ToBase64String(Encoding.Default.GetBytes(concat));
+        //analysisId: string resultante da codificação em base64
 
         analysisId = HttpUtility.HtmlEncode(analysisId);
 
-        var extensionInfoResult = new ExtensionInfoResult(extension, analysisId);
+        var extensionInfoResult = new ExtInfoResult(extension, analysisId);
 
         Console.WriteLine(extension.Id + "|" + extension.Version);
 

@@ -3,7 +3,7 @@ using Common.ClassesWeb.GoogleSafeBrowsing;
 using Common.Enums;
 using Common.JsonSourceGenerators;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -16,12 +16,13 @@ namespace Common.Handlers
         private static readonly HttpClient _httpClient = new();
         private static readonly HttpClient _pingHttpClient = new()
         {
-            Timeout = TimeSpan.FromSeconds(5)
+            Timeout = TimeSpan.FromSeconds(4)
         };
 
+        private const int _gsb_batch_size = 500;
         public static void CheckURLs(BrowserExtension extension)
         {
-            Console.WriteLine("Buscando string em formato de URL na extensão...");
+            Console.WriteLine("Buscando string em formato de URLs na extensão...");
             var urls = FindURLs(extension);
             Console.WriteLine("Consultando base de URLs do Google Safe Browsing...");
             urls = CheckURLsSafety(urls);
@@ -78,47 +79,65 @@ namespace Common.Handlers
             }
             return [.. extension.ContainedURLs.DistinctBy(x => x.OriginalUrl)];
         }
-        private static List<Url> CheckURLsSafety(ICollection<Url> urls)
+        private static List<Url> CheckURLsSafety(List<Url> urls)
         {
-            var sb = new StringBuilder();
+            var urlBag = new ConcurrentBag<Url>();
 
-            foreach (var url in urls)
+            int urlCount = urls.Count;
+            var calls = new List<Task>();
+
+            do
             {
-                sb.Append(string.Format("{{\"url\":\"{0}\"}},", url.OriginalUrl));
-            }
+                var batch = urls.Take(_gsb_batch_size);
+                urls = [.. urls.Skip(_gsb_batch_size)];
+                urlCount -= _gsb_batch_size;
 
-            var body = Res.Jsons.GSBLookupRequest
-                .Trim()
-                .Replace("[URLS]", sb.ToString().Trim());
-
-            var request = new HttpRequestMessage(HttpMethod.Post, Res.Params.GSBLookupURL + Res.Keys.google_api_key)
-            {
-                Content = new StringContent(body)
-            };
-
-            var response = _httpClient.Send(request);
-
-            string text = string.Empty;
-
-            using(var reader = new StreamReader(response.Content.ReadAsStream(), Encoding.UTF8))
-            {
-                text = reader.ReadToEnd();
-            }
-            var threats = JsonSerializer.Deserialize(text, GSBResponseSG.Default.GSBResponse) ?? new GSBResponse();
-
-            foreach (var url in urls)
-            {
-                url.ThreatType = GSBThreatType.SAFE;
-                foreach (var threat in threats.ThreatMatches)
+                calls.Add(Task.Factory.StartNew(() => 
                 {
-                    if (threat.ThreatEntry.Url.Equals(url.OriginalUrl))
+                    var sb = new StringBuilder();
+                    foreach (var url in batch)
                     {
-                        url.ThreatType = threat.ThreatType;
-                        break;
+                        sb.Append(string.Format("{{\"url\":\"{0}\"}},", url.OriginalUrl));
                     }
-                }
-            }
-            return [.. urls.OrderBy(u => u.OriginalUrl)];
+
+                    var body = Res.Jsons.GSBLookupRequest
+                        .Trim()
+                        .Replace("[URLS]", sb.ToString().Trim());
+
+                    var request = new HttpRequestMessage(HttpMethod.Post, Res.Params.GSBLookupURL + Res.Keys.google_api_key)
+                    {
+                        Content = new StringContent(body)
+                    };
+
+                    var response = _httpClient.Send(request);
+
+                    string text = string.Empty;
+
+                    using (var reader = new StreamReader(response.Content.ReadAsStream(), Encoding.UTF8))
+                    {
+                        text = reader.ReadToEnd();
+                    }
+                    var threats = JsonSerializer.Deserialize(text, GSBResponseSG.Default.GSBResponse) ?? new GSBResponse();
+
+                    foreach (var url in batch)
+                    {
+                        url.ThreatType = GSBThreatType.SAFE;
+                        foreach (var threat in threats.ThreatMatches)
+                        {
+                            if (threat.ThreatEntry.Url.Equals(url.OriginalUrl))
+                            {
+                                url.ThreatType = threat.ThreatType;
+                                break;
+                            }
+                        }
+                        urlBag.Add(url);
+                    }
+                }));
+            } while (urlCount > 0);
+
+            Task.WaitAll([.. calls]);
+
+            return [.. urlBag.OrderBy(u => u.ThreatType).ThenBy(u => u.OriginalUrl)];
         }
         private static bool CanContainURLs(string fileName)
         {

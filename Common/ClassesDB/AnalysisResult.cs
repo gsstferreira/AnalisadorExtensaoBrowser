@@ -1,10 +1,4 @@
-﻿using Amazon;
-using Amazon.DynamoDBv2;
-using Common.Classes;
-using System.Buffers.Text;
-using System.Text;
-
-namespace Common.ClassesDB
+﻿namespace Common.ClassesDB
 {
     public abstract class AnalysisResult
     {

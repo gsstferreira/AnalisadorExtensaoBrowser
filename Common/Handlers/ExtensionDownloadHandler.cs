@@ -3,6 +3,7 @@ using Common.Enums;
 using HtmlAgilityPack;
 using Res;
 using System.Globalization;
+using System.Text;
 
 namespace Common.Handlers
 {
@@ -44,13 +45,13 @@ namespace Common.Handlers
         }
         public static BrowserExtension GetExtension(string url, DownloadType downloadType)
         {
-            var urlParts = url.Replace(Res.Params.ViewURL, string.Empty).Trim().Split(['/', '?']);
+            var urlParts = url.Replace(Params.ViewURL, string.Empty).Trim().Split(['/', '?']);
             var simpleName = urlParts[0];
             var extensionId = urlParts[1];
 
-            var downloadUrl = Res.Params.DownloadURL.
-                Replace("[PRODVER]", Res.Params.ChromeProdVersion).
-                Replace("[FORMAT]", Res.Params.AcceptedFormat).
+            var downloadUrl = Params.DownloadURL.
+                Replace("[PRODVER]", Params.ChromeProdVersion).
+                Replace("[FORMAT]", Params.AcceptedFormat).
                 Replace("[ID]", extensionId);
 
             var extension = new BrowserExtension(url, downloadUrl, simpleName, extensionId);
@@ -98,8 +99,7 @@ namespace Common.Handlers
             crxStream.Read(new byte[headerLength], 0, headerLength);    // Remoção do cabeçalho, deixando apenas o .zip no stream
 
             crxStream.CopyTo(zipStream);
-            Console.WriteLine("CrxStream Size: {0:0.00}KB; ZipStreamSize {1:0.00}KB", crxStream.Length / 1024.0, zipStream.Length / 1024.0);
-                
+               
             extension.SetCrxFile(crxStream, zipStream);
         }
         private static void ScrapeExtensionInfo(BrowserExtension extension)

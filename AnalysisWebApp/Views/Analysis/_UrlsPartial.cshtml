@@ -14,27 +14,27 @@
     @if(Model is not null)
     {
         <div>
-            <h5><b>Endereços encontrados:</b> @(Model.Count)</h5>
+            <h6><b>Endereços encontrados:</b> @(Model.Count)</h6>
+            <h6><b>Ameaças detectadas:</b> @(Model.Where(u => u.IsThreat).Count())/@(Model.Count)</h6>
         </div>
         <br />
         <div class="table-responsive">
             <table class="table table-bordered border-primary table-striped">
                 <thead class="table-bordered border-primary" style="background-color:lightblue">
                     <tr style="align-content:center;text-align:center">
-                        <th scope="col"><h6><b>Endereço Web</b></h6></th>
-                        <th scope="col"><h6><b>Tipo de Endereço</b></h6></th>
-                        <th scope="col"><h6><b>Usa Certificado (HTTPS)</b></h6></th>
-                        <th scope="col"><h6><b>Risco</b></h6></th>
+                        <th scope="col"><span><b>Endereço Web</b></span></th>
+                        <th scope="col"><span><b>Resolução DNS</b></span></th>
+                        <th scope="col"><span><b>Tipo de Endereço</b></span></th>
+                        <th scope="col"><span><b>Usa Certificado (HTTPS)</b></span></th>
+                        <th scope="col"><span><b>Risco</b></span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var url in Model)
                     {
                         <tr>
-                            <td style="align-content:center">
-                                <div>@(url.OriginalUrl)</div>
-                                <small style="color:dimgray">Host determinado: @(url.Host)</small>
-                            </td>
+                            <td>@(url.OriginalUrl)</td>
+                            <td>@(url.Host)</td>
                             <td style="align-content:center;text-align:center">@url.UrlType</td>
                             <td style="align-content:center;text-align:center">@(url.IsHttps ? "Sim" : "Não")</td>
                             <td style="align-content:center;text-align:center">@(url.Threat)</td>

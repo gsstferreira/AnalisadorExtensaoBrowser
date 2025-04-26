@@ -1,19 +1,18 @@
 ﻿using Common.Classes;
-using System.Collections.ObjectModel;
 
 
 namespace Common.ClassesDB
 {
-    public class ExtensionPermissionsResult : AnalysisResult
+    public class ExtPermissionsResult : AnalysisResult
     {
         public List<Permission> Permissions { get; set; }
 
-        public ExtensionPermissionsResult() : base() 
+        public ExtPermissionsResult() : base() 
         {
             Permissions = [];
         }
 
-        public ExtensionPermissionsResult(BrowserExtension extension, string analysisId) : base(analysisId)
+        public ExtPermissionsResult(BrowserExtension extension, string analysisId) : base(analysisId)
         {
             Permissions = [];
             Permissions.AddRange(extension.Permissions);

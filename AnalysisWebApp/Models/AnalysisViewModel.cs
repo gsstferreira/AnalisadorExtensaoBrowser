@@ -1,6 +1,4 @@
 ﻿using Common.ClassesDB;
-using Common.ClassesWeb.GoogleSafeBrowsing;
-using Common.ClassesWeb.VirusTotal;
 using Common.Enums;
 using Common.Handlers;
 using Res;
@@ -25,7 +23,6 @@ namespace AnalysisWebApp.Models
         public JsListViewModel? ExtensionJSFiles { get; set; }
         public List<UrlViewModel>? ExtensionUrls { get; set; }
         public VirusTotalViewModel? ExtensionVTResponse { get; set; }
-
         public AnalysisViewModel() 
         {
             AnalysisId = string.Empty;
@@ -64,7 +61,7 @@ namespace AnalysisWebApp.Models
                 return number.ToString();
             }
         }
-        public void ParseExtensionInfo(ExtensionInfoResult? result)
+        public void ParseInfo(ExtInfoResult? result)
         {
             if (result is not null)
             {
@@ -84,7 +81,7 @@ namespace AnalysisWebApp.Models
                 ExtensionDownloads = NumberToString(result.NumDownloads);
             }
         }
-        public void ParseExtensionJSFiles(ExtensionJSResult? result)
+        public void ParseJSFiles(ExtJSResult? result)
         {
             var list = new List<JsFileViewModel>();
 
@@ -96,12 +93,12 @@ namespace AnalysisWebApp.Models
                 }
                 ExtensionJSFiles = new()
                 {
-                    JsFiles = [.. list.OrderBy(f => !f.HasMatch).ThenBy(f => f.Name)],
+                    JsFiles = [.. list.OrderBy(f => !f.HasMatch).ThenByDescending(f => f.Directory).ThenBy(f => f.Name)],
                     TotalCount = result.TotalCount
                 };
             }
         }
-        public void ParseExtensionUrls(ExtensionURLsResult? result)
+        public void ParseUrls(ExtURLsResult? result)
         {
             if (result is not null) 
             {
@@ -114,7 +111,7 @@ namespace AnalysisWebApp.Models
                 ExtensionUrls = [.. list.OrderBy(u => u.Threat).ThenBy(u => u.OriginalUrl)];
             }
         }
-        public void ParseExtensionPermissions(ExtensionPermissionsResult? result) 
+        public void ParsePermissions(ExtPermissionsResult? result) 
         { 
             if (result is not null) 
             {
@@ -139,7 +136,7 @@ namespace AnalysisWebApp.Models
                 }
             }
         }
-        public void ParseExtensionVTresult(ExtensionVTResult? result)
+        public void ParseVirusTotal(ExtVTResult? result)
         {
             if (result is not null)
             {
